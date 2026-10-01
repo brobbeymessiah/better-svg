@@ -8,6 +8,9 @@
 
 ### Fixed
 
+- Render inline and data-URL SVGs in React Native without requiring `fetch`.
+- Report React Native load errors when `DOMException` is unavailable.
+- Parse self-closing SVG roots and decode XML entities in text without a DOM parser.
 - Preserve authored root CSS in Vue and Svelte, including dashed property names, custom properties, and quoted values.
 - Convert camel-cased Vue style-object keys to valid CSS property names without changing custom-property casing.
 - Extract root class and style attributes regardless of casing so overrides merge correctly.
