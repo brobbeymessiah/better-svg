@@ -8,6 +8,8 @@
 
 ### Fixed
 
+- Abort pending Vue loads when the source is cleared so stale responses cannot replace the fallback.
+- Call Vue load and error callbacks once through their corresponding component events.
 - Honor `cache={false}` on every Svelte load and reuse cached markup across Svelte mounts.
 - Reparse changed markup for the same source instead of returning stale SVG content.
 - Share only responses explicitly marked public and bypass private, no-store, and no-cache responses so session content cannot cross adapters.
