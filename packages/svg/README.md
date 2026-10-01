@@ -110,6 +110,11 @@ React Native also accepts `width`, `height`, `color`, `fill`, `stroke`, and
 attributes (including `width`, `height`, `viewBox`, `fill`, `stroke`,
 `role`, `aria-label`, `aria-hidden`).
 
+Remote markup caching is shared across adapters and limited to 500 entries.
+Only responses marked `Cache-Control: public` enter this cache. Responses
+marked `private`, `no-store`, or `no-cache` and custom `fetchOptions` bypass it. Use `cache={false}`
+for SVGs that depend on the current session or need fresh responses.
+
 ## Entry points
 
 | Import                     | Framework        |
