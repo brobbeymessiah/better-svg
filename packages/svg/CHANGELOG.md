@@ -8,6 +8,9 @@
 
 ### Fixed
 
+- Preserve authored root CSS in Vue and Svelte, including dashed property names, custom properties, and quoted values.
+- Convert camel-cased Vue style-object keys to valid CSS property names without changing custom-property casing.
+- Extract root class and style attributes regardless of casing so overrides merge correctly.
 - Abort pending Vue loads when the source is cleared so stale responses cannot replace the fallback.
 - Call Vue load and error callbacks once through their corresponding component events.
 - Honor `cache={false}` on every Svelte load and reuse cached markup across Svelte mounts.
