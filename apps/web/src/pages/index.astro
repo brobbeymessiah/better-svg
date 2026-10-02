@@ -194,7 +194,7 @@ import CodeBlock from "../components/CodeBlock.astro";
 
             <div class="relative border border-coal-4 bg-coal">
               <!-- Tab bar -->
-              <div class="flex border-b border-coal-2 overflow-x-auto" data-fw-tabs>
+              <div class="flex flex-wrap border-b border-coal-2" data-fw-tabs>
                 <button type="button" class="fw-tab is-active" data-fw-tab="react">React</button>
                 <button type="button" class="fw-tab" data-fw-tab="react-native">React Native</button>
                 <button type="button" class="fw-tab" data-fw-tab="vue">Vue</button>
@@ -443,6 +443,7 @@ import CodeBlock from "../components/CodeBlock.astro";
 
 <style>
   .fw-tab {
+    flex: 1 0 auto;
     padding: 8px 14px;
     font-family: "JetBrains Mono", monospace;
     font-size: 0.75rem;
