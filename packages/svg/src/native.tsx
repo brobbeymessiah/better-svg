@@ -1,5 +1,6 @@
 import * as React from "react";
 import { createSvgId, rewriteSvgAttributes, scopeSvgNodeIds } from "./core/ids";
+import { svgDimensions, type SvgPresentation } from "./core/presentation";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 import {
   Svg,
@@ -217,29 +218,39 @@ export const renderSvgNode = (
 
 type SvgSourceProps = { src: string; name?: never } | { name: SvgNameInput; src?: never };
 
-export type NativeSvgProps = SvgSourceProps & {
-  width?: number | string;
-  height?: number | string;
-  color?: string;
-  fill?: string;
-  stroke?: string;
-  strokeWidth?: number;
-  style?: StyleProp<ViewStyle>;
-  fetchOptions?: RequestInit;
-  cache?: boolean;
-  sanitize?: boolean;
-  uniqueIds?: boolean;
-  loading?: React.ReactNode;
-  fallback?: React.ReactNode;
-  onSvgLoad?: (markup: string) => void;
-  onSvgError?: (error: Error) => void;
-};
+export type NativeSvgProps = SvgSourceProps &
+  SvgPresentation & {
+    accessible?: boolean;
+    accessibilityLabel?: string;
+    accessibilityHint?: string;
+    width?: number | string;
+    height?: number | string;
+    color?: string;
+    fill?: string;
+    stroke?: string;
+    strokeWidth?: number;
+    style?: StyleProp<ViewStyle>;
+    fetchOptions?: RequestInit;
+    cache?: boolean;
+    sanitize?: boolean;
+    uniqueIds?: boolean;
+    loading?: React.ReactNode;
+    fallback?: React.ReactNode;
+    onSvgLoad?: (markup: string) => void;
+    onSvgError?: (error: Error) => void;
+  };
 
 export const SVG = React.forwardRef<unknown, NativeSvgProps>(
   (
     {
       src,
       name,
+      size,
+      title,
+      desc,
+      accessible,
+      accessibilityLabel,
+      accessibilityHint,
       width,
       height,
       color,
@@ -332,11 +343,16 @@ export const SVG = React.forwardRef<unknown, NativeSvgProps>(
     }
 
     return (
-      <View style={style}>
+      <View
+        style={style}
+        accessible={accessible ?? (title ? true : undefined)}
+        accessibilityLabel={accessibilityLabel ?? title}
+        accessibilityHint={accessibilityHint ?? desc}
+      >
         {renderSvgNode(
           content.node,
           rewriteSvgAttributes({ color, fill, stroke, strokeWidth }, content.ids),
-          { width, height },
+          svgDimensions({ size, width, height }),
         )}
       </View>
     );

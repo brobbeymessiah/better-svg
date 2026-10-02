@@ -3,6 +3,8 @@
   import { createSvgController, type SvelteSvgProps, type SvgState } from "./runtime";
   import { rewriteSvgAttributes, rewriteSvgValue } from "../core/ids";
 
+  import { createSvgPresentation, svgDimensions } from "../core/presentation";
+
   let {
     src,
     name,
@@ -16,6 +18,9 @@
     onSvgError,
     class: className,
     style,
+    size,
+    title,
+    desc,
     width,
     height,
     viewBox,
@@ -27,6 +32,7 @@
   }: SvelteSvgProps = $props();
 
   const controller = createSvgController();
+  const present = createSvgPresentation();
   let state: SvgState = $state({ status: "loading" });
 
   $effect(() => {
@@ -60,9 +66,11 @@
     return merged && state.status === "ready" && state.content.ids ? rewriteSvgValue("style", merged, state.content.ids) : merged;
   });
 
+  const presentation = $derived(state.status === "ready" ? present(state.content, { title, desc }) : undefined);
+
   const rootAttrs = $derived.by(() => {
     if (state.status !== "ready") return {};
-    const attrs: Record<string, string | number | undefined> = { ...state.content.attrs };
+    const attrs: Record<string, string | number | boolean | undefined> = { ...presentation?.attrs, ...svgDimensions({ size, width, height }) };
     if (width !== undefined) attrs.width = width;
     if (height !== undefined) attrs.height = height;
     if (viewBox !== undefined) attrs.viewBox = viewBox;
@@ -72,7 +80,7 @@
     if (fill !== undefined) attrs.fill = fill;
     if (stroke !== undefined) attrs.stroke = stroke;
     if (role !== undefined) attrs.role = role;
-    if (ariaLabel !== undefined) attrs["aria-label"] = ariaLabel;
+    if (ariaLabel !== undefined) { attrs["aria-label"] = ariaLabel; delete attrs["aria-labelledby"]; }
     if (ariaHidden !== undefined) attrs["aria-hidden"] = ariaHidden;
     return rewriteSvgAttributes(attrs, state.content.ids);
   });
@@ -87,5 +95,5 @@
     {...rootAttrs}
     class={mergedClass || undefined}
     style={mergedStyle}
-  >{@html state.content.innerHTML}</svg>
+  >{@html presentation?.innerHTML ?? ""}</svg>
 {/if}

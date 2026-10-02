@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+
+### Added
+
+- Set both dimensions with `size`, with explicit `width` and `height` taking precedence.
+- Set accessible `title` and `desc` text across web adapters without reloading the source. React Native maps these to its accessibility label and hint.
+
 ## 0.5.0
 
 ### Added

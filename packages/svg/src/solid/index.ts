@@ -18,11 +18,14 @@ import {
   type WebSvgState,
 } from "../core/web";
 
+import { createSvgPresentation, type SvgPresentation } from "../core/presentation";
+
 export type SvgProps = Omit<
   JSX.SvgSVGAttributes<SVGSVGElement>,
   "children" | "innerHTML" | "ref" | "style"
 > &
-  WebSvgOptions & {
+  WebSvgOptions &
+  SvgPresentation & {
     style?: string;
     loading?: JSX.Element;
     fallback?: JSX.Element;
@@ -30,6 +33,9 @@ export type SvgProps = Omit<
 
 export const SVG = (props: SvgProps): JSX.Element => {
   const [options, attributes] = splitProps(props, [
+    "title",
+    "desc",
+    "size",
     "src",
     "name",
     "fetchOptions",
@@ -43,6 +49,7 @@ export const SVG = (props: SvgProps): JSX.Element => {
   ]);
   const [state, setState] = createSignal<WebSvgState>({ status: "loading" });
   const controller = createWebSvgController();
+  const present = createSvgPresentation();
 
   createEffect(() => {
     const request: WebSvgOptions = {
@@ -71,14 +78,20 @@ export const SVG = (props: SvgProps): JSX.Element => {
     get fallback() {
       return state().status === "loading" ? options.loading : options.fallback;
     },
-    children: (content: NonNullable<ReturnType<typeof ready>>) =>
-      createComponent(
+    children: (content: NonNullable<ReturnType<typeof ready>>) => {
+      const presentation = createMemo(() => ({ ...content, ...present(content, options) }));
+      return createComponent(
         Dynamic,
-        mergeProps(() => ({ ...attributes, ...mergeSvgAttributes(content, attributes) }), {
-          component: "svg",
-          innerHTML: content.innerHTML,
-        }),
-      ),
+        mergeProps(
+          () => ({
+            ...attributes,
+            ...mergeSvgAttributes(presentation(), { ...attributes, size: options.size }),
+            innerHTML: presentation().innerHTML,
+          }),
+          { component: "svg" },
+        ),
+      );
+    },
   });
 };
 

@@ -3,7 +3,10 @@ import type { AstroComponentFactory } from "astro/runtime/server/index.js";
 import type { WebSvgOptions } from "../core/web";
 export { registerLocalSvgs } from "../core/local";
 
-export interface Props extends Omit<HTMLAttributes<"svg">, "style">, WebSvgOptions {
+import type { SvgPresentation } from "../core/presentation";
+
+export interface Props
+  extends Omit<HTMLAttributes<"svg">, "style">, WebSvgOptions, SvgPresentation {
   style?: string;
 }
 
