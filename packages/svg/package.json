@@ -67,8 +67,9 @@
       "import": "./dist/solid/index.js"
     },
     "./astro": {
-      "types": "./dist/astro/index.d.ts",
-      "import": "./dist/astro/index.js"
+      "types": "./dist/astro/SVG.astro.d.ts",
+      "import": "./dist/astro/SVG.astro",
+      "default": "./dist/astro/SVG.astro"
     },
     "./angular": {
       "types": "./dist/angular/index.d.ts",

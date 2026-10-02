@@ -37,8 +37,8 @@ export const loadAstroSvg = async (
     cache: options.cache ?? true,
   });
   const document = new DOMParser({
-    onError: (level, message) => {
-      if (level !== "warning") throw new Error(`Invalid SVG markup: ${message}`);
+    onError: (_level, message) => {
+      throw new Error(`Invalid SVG markup: ${message}`);
     },
   }).parseFromString(markup, "image/svg+xml");
   const element = document.documentElement;

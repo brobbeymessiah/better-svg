@@ -2,6 +2,7 @@
 import type { HTMLAttributes } from "astro/types";
 import { mergeSvgAttributes, type WebSvgOptions } from "../core/web";
 import { loadAstroSvg } from "./runtime";
+export { registerLocalSvgs } from "../core/local";
 
 export interface Props extends Omit<HTMLAttributes<"svg">, "style">, WebSvgOptions {
   style?: string;

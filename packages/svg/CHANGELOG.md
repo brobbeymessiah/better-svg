@@ -12,7 +12,6 @@
 
 - Make framework peers optional so installing the package does not require React for other adapters.
 - Include an XML parser for Astro server rendering.
-
 - Share one markup cache across all JavaScript adapters and limit it to 500 entries with least-recently-used eviction.
 
 ### Fixed
