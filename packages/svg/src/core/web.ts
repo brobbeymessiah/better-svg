@@ -2,6 +2,7 @@ import { ensureParsedSvg } from "./cache";
 import { resolveMarkup, resolveSource } from "./resolve";
 import type { SvgNameInput } from "./local";
 import type { ParsedInlineSvg } from "./sanitize";
+import { createSvgId, rewriteSvgAttributes, scopeParsedSvgIds } from "./ids";
 
 export type WebSvgOptions = {
   src?: string;
@@ -9,6 +10,7 @@ export type WebSvgOptions = {
   fetchOptions?: RequestInit;
   cache?: boolean;
   sanitize?: boolean;
+  uniqueIds?: boolean;
   onSvgLoad?: (markup: string) => void;
   onSvgError?: (error: Error) => void;
 };
@@ -19,6 +21,7 @@ export type WebSvgState =
   | { status: "ready"; content: ParsedInlineSvg };
 
 export const createWebSvgController = () => {
+  const prefix = createSvgId();
   let current: AbortController | undefined;
 
   const load = async (options: WebSvgOptions, update: (state: WebSvgState) => void) => {
@@ -43,7 +46,10 @@ export const createWebSvgController = () => {
         options.cache ?? true,
       );
       if (!content) throw new Error("SVG markup is invalid or unavailable in this environment.");
-      update({ status: "ready", content });
+      update({
+        status: "ready",
+        content: options.uniqueIds === false ? content : scopeParsedSvgIds(content, prefix),
+      });
       options.onSvgLoad?.(markup);
     } catch (cause) {
       if (controller.signal.aborted) return;
@@ -79,5 +85,5 @@ export const mergeSvgAttributes = (content: ParsedInlineSvg, overrides: WebSvgAt
   }
   attrs.class = [content.className, overrides.class].filter(Boolean).join(" ") || undefined;
   attrs.style = [content.styleText, overrides.style].filter(Boolean).join(";") || undefined;
-  return attrs;
+  return rewriteSvgAttributes(attrs, content.ids);
 };

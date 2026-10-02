@@ -8,10 +8,10 @@ export interface Props extends Omit<HTMLAttributes<"svg">, "style">, WebSvgOptio
   style?: string;
 }
 
-const { src, name, fetchOptions, cache = true, sanitize = true, onSvgLoad, onSvgError, ...attributes } = Astro.props;
+const { src, name, fetchOptions, cache = true, sanitize = true, uniqueIds = true, onSvgLoad, onSvgError, ...attributes } = Astro.props;
 let content;
 try {
-  content = await loadAstroSvg({ src, name, fetchOptions, cache, sanitize, onSvgLoad }, Astro.url);
+  content = await loadAstroSvg({ src, name, fetchOptions, cache, sanitize, uniqueIds, onSvgLoad }, Astro.url);
 } catch (cause) {
   const error = cause instanceof Error ? cause : new Error("Failed to load SVG.");
   onSvgError?.(error);

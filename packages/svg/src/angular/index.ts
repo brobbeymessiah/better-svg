@@ -42,6 +42,7 @@ export class SVG {
   readonly fetchOptions = input<RequestInit>();
   readonly cache = input(true);
   readonly sanitize = input(true);
+  readonly uniqueIds = input(true);
   readonly loading = input<TemplateRef<unknown>>();
   readonly fallback = input<TemplateRef<unknown>>();
   readonly width = input<string | number>();
@@ -74,6 +75,7 @@ export class SVG {
         fetchOptions: this.fetchOptions(),
         cache: this.cache(),
         sanitize: this.sanitize(),
+        uniqueIds: this.uniqueIds(),
         onSvgLoad: (markup: string) => this.svgLoad.emit(markup),
         onSvgError: (error: Error) => this.svgError.emit(error),
       };
