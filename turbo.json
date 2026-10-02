@@ -36,7 +36,12 @@
     },
     "web#build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*", "$TURBO_ROOT$/packages/svg/package.json"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "$TURBO_ROOT$/packages/svg/package.json",
+        "$TURBO_ROOT$/packages/svg/CHANGELOG.md"
+      ],
       "outputs": ["dist/**"]
     }
   }
