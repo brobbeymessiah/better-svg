@@ -1,8 +1,17 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
+
+### Added
+
+- Render inline SVGs in Solid with reactive props, loading and fallback content, and load/error callbacks.
+- Render sanitized SVGs on the server in Astro without client JavaScript, with a fallback slot and local SVG registration.
+- Render inline SVGs in Angular 20+ with a standalone component, signal inputs, loading and fallback templates, and load/error outputs.
 
 ### Changed
+
+- Make framework peers optional so installing the package does not require React for other adapters.
+- Include an XML parser for Astro server rendering.
 
 - Share one markup cache across all JavaScript adapters and limit it to 500 entries with least-recently-used eviction.
 

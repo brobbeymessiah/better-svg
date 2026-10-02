@@ -1,0 +1,83 @@
+import { ensureParsedSvg } from "./cache";
+import { resolveMarkup, resolveSource } from "./resolve";
+import type { SvgNameInput } from "./local";
+import type { ParsedInlineSvg } from "./sanitize";
+
+export type WebSvgOptions = {
+  src?: string;
+  name?: SvgNameInput;
+  fetchOptions?: RequestInit;
+  cache?: boolean;
+  sanitize?: boolean;
+  onSvgLoad?: (markup: string) => void;
+  onSvgError?: (error: Error) => void;
+};
+
+export type WebSvgState =
+  | { status: "loading" }
+  | { status: "error"; error: Error }
+  | { status: "ready"; content: ParsedInlineSvg };
+
+export const createWebSvgController = () => {
+  let current: AbortController | undefined;
+
+  const load = async (options: WebSvgOptions, update: (state: WebSvgState) => void) => {
+    current?.abort();
+    const controller = new AbortController();
+    current = controller;
+    update({ status: "loading" });
+
+    try {
+      const source = resolveSource(options.src, options.name);
+      if (!source) throw new Error("Either name or src is required.");
+      const markup = await resolveMarkup(source, {
+        signal: controller.signal,
+        cache: options.cache ?? true,
+        fetchOptions: options.fetchOptions,
+      });
+      if (controller.signal.aborted) return;
+      const content = ensureParsedSvg(
+        source,
+        markup,
+        options.sanitize ?? true,
+        options.cache ?? true,
+      );
+      if (!content) throw new Error("SVG markup is invalid or unavailable in this environment.");
+      update({ status: "ready", content });
+      options.onSvgLoad?.(markup);
+    } catch (cause) {
+      if (controller.signal.aborted) return;
+      const error = cause instanceof Error ? cause : new Error("Failed to load SVG.");
+      update({ status: "error", error });
+      options.onSvgError?.(error);
+    }
+  };
+
+  return { load, abort: () => current?.abort() };
+};
+
+export type WebSvgAttributes = {
+  width?: string | number;
+  height?: string | number;
+  viewBox?: string;
+  fill?: string;
+  stroke?: string;
+  role?: string;
+  "aria-label"?: string;
+  "aria-hidden"?: boolean | "true" | "false";
+  class?: string;
+  style?: string;
+};
+
+export const mergeSvgAttributes = (content: ParsedInlineSvg, overrides: WebSvgAttributes) => {
+  const attrs: Record<string, string | number | boolean | undefined> = { ...content.attrs };
+  for (const [key, value] of Object.entries(overrides)) {
+    if (value !== undefined) attrs[key] = value;
+  }
+  if (!attrs.viewBox && (overrides.width !== undefined || overrides.height !== undefined)) {
+    attrs.viewBox = "0 0 24 24";
+  }
+  attrs.class = [content.className, overrides.class].filter(Boolean).join(" ") || undefined;
+  attrs.style = [content.styleText, overrides.style].filter(Boolean).join(";") || undefined;
+  return attrs;
+};
