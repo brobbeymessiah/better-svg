@@ -1,4 +1,5 @@
 import * as React from "react";
+import { parseXmlNode } from "./core/xml";
 import { createSvgId, rewriteSvgAttributes, scopeSvgNodeIds } from "./core/ids";
 import { svgDimensions, type SvgPresentation } from "./core/presentation";
 import { View, type StyleProp, type ViewStyle } from "react-native";
@@ -305,7 +306,7 @@ export const SVG = React.forwardRef<unknown, NativeSvgProps>(
       }
 
       const finish = (markup: string) => {
-        const parsed = ensureParsedNode(resolvedSource, markup, sanitize, cache);
+        const parsed = ensureParsedNode(resolvedSource, markup, sanitize, cache, parseXmlNode);
         if (!parsed) {
           throw new Error("SVG markup is invalid.");
         }

@@ -1,4 +1,5 @@
 import { hasUnsafeUrl, isSafeUrl } from "./url";
+import type { Element as XmlElement } from "@xmldom/xmldom";
 
 export type SvgAttribute = { name: string; value: string };
 
@@ -118,15 +119,16 @@ export const domParserAvailable = () =>
   typeof document !== "undefined" &&
   typeof DOMParser !== "undefined";
 
-export const toNodeFromElement = (element: Element): SvgNode => {
+export const toNodeFromElement = (element: Element | XmlElement): SvgNode => {
   const attrs: SvgAttribute[] = [];
-  for (const attr of Array.from(element.attributes)) {
-    attrs.push({ name: attr.name, value: attr.value });
+  for (let i = 0; i < element.attributes.length; i++) {
+    const attr = element.attributes.item(i);
+    if (attr) attrs.push({ name: attr.name, value: attr.value });
   }
   const children: SvgNode[] = [];
-  for (const child of Array.from(element.childNodes)) {
+  for (let child = element.firstChild; child; child = child.nextSibling) {
     if (child.nodeType === 1) {
-      children.push(toNodeFromElement(child as Element));
+      children.push(toNodeFromElement(child as Element | XmlElement));
     } else if (child.nodeType === 3 || child.nodeType === 4) {
       const text = child.nodeValue ?? "";
       if (text.length > 0) {

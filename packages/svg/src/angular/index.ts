@@ -68,10 +68,7 @@ export class SVG {
   protected readonly content = computed(() => {
     const state = this.state();
     return state.status === "ready"
-      ? {
-          ...state.content,
-          ...this.present(state.content, { title: this.title(), desc: this.desc() }),
-        }
+      ? this.present(state.content, { title: this.title(), desc: this.desc() })
       : undefined;
   });
   protected readonly html = computed(() => {

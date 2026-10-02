@@ -6,8 +6,14 @@ type CacheKey = string;
 const PARSED_CACHE_LIMIT = 500;
 const NODE_CACHE_LIMIT = 200;
 
-const parsedCache = new Map<CacheKey, { parsed: ParsedInlineSvg; markup?: string }>();
-const nodeCache = new Map<CacheKey, { node: SvgNode; markup: string }>();
+const parsedCache = new Map<
+  CacheKey,
+  { parsed: ParsedInlineSvg; markup?: string; parser?: typeof parseInlineSvg }
+>();
+const nodeCache = new Map<
+  CacheKey,
+  { node: SvgNode; markup: string; parser: typeof parseAndSanitize }
+>();
 const markupCache = new Map<string, string>();
 
 const keyFor = (source: string, sanitize: boolean): CacheKey =>
@@ -41,8 +47,9 @@ export const cacheParsedSvg = (
   sanitize: boolean,
   parsed: ParsedInlineSvg,
   markup?: string,
+  parser = parseInlineSvg,
 ): void => {
-  setBounded(parsedCache, keyFor(source, sanitize), { parsed, markup }, PARSED_CACHE_LIMIT);
+  setBounded(parsedCache, keyFor(source, sanitize), { parsed, markup, parser }, PARSED_CACHE_LIMIT);
 };
 
 export const getCachedMarkup = (source: string): string | undefined => touch(markupCache, source);
@@ -64,13 +71,14 @@ export const ensureParsedSvg = (
   markup: string,
   sanitize: boolean,
   cache = true,
+  parse = parseInlineSvg,
 ): ParsedInlineSvg | null => {
   if (cache) {
     const cached = touch(parsedCache, keyFor(source, sanitize));
-    if (cached?.markup === markup) return cached.parsed;
+    if (cached?.markup === markup && cached.parser === parse) return cached.parsed;
   }
-  const parsed = parseInlineSvg(markup, sanitize);
-  if (parsed && cache) cacheParsedSvg(source, sanitize, parsed, markup);
+  const parsed = parse(markup, sanitize);
+  if (parsed && cache) cacheParsedSvg(source, sanitize, parsed, markup, parse);
   return parsed;
 };
 
@@ -79,16 +87,17 @@ export const ensureParsedNode = (
   markup: string,
   sanitize: boolean,
   cache = true,
+  parse = parseAndSanitize,
 ): SvgNode | null => {
   if (cache) {
     const key = keyFor(source, sanitize);
     const entry = touch(nodeCache, key);
-    if (entry?.markup === markup) return entry.node;
-    const node = parseAndSanitize(markup, sanitize);
-    if (node) setBounded(nodeCache, key, { node, markup }, NODE_CACHE_LIMIT);
+    if (entry?.markup === markup && entry.parser === parse) return entry.node;
+    const node = parse(markup, sanitize);
+    if (node) setBounded(nodeCache, key, { node, markup, parser: parse }, NODE_CACHE_LIMIT);
     return node;
   }
-  return parseAndSanitize(markup, sanitize);
+  return parse(markup, sanitize);
 };
 
 export const __svgNodeCacheSize = (): number => nodeCache.size;

@@ -1,5 +1,5 @@
-import { parseInlineStyle, renderNode, splitAttributes, type SvgNode } from "./ast";
-import type { ParsedInlineSvg } from "./sanitize";
+import type { SvgNode } from "./ast";
+import { inlineSvgFromNode, type ParsedInlineSvg } from "./sanitize";
 
 let nextId = 0;
 const instanceKey = Math.random().toString(36).slice(2);
@@ -90,16 +90,9 @@ export const scopeSvgNodeIds = (root: SvgNode, prefix: string) => {
 export const scopeParsedSvgIds = (content: ParsedInlineSvg, prefix: string): ParsedInlineSvg => {
   const { node, ids } = scopeSvgNodeIds(content.node, prefix);
   if (!ids.size) return content;
-  const { attributes, className, styleText } = splitAttributes(node.attrs);
-  return {
-    attrs: Object.fromEntries(attributes.map(({ name, value }) => [name, value])),
-    className,
-    styleText,
-    style: styleText ? parseInlineStyle(styleText) : undefined,
-    innerHTML: node.children.map(renderNode).join(""),
-    node,
-    ids,
-  };
+  const parsed = inlineSvgFromNode(node);
+  parsed.ids = ids;
+  return parsed;
 };
 
 export const rewriteSvgAttributes = <T extends object>(

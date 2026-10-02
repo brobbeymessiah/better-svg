@@ -22,10 +22,19 @@ export const svgDimensions = ({
   return dimensions;
 };
 
-type SvgContent = Pick<ParsedInlineSvg, "node" | "attrs" | "innerHTML">;
+type SvgContent = ParsedInlineSvg;
 
 export const createSvgPresentation = () => {
   const prefix = createSvgId();
+  const rendered = new WeakMap<SvgNode, string>();
+  const renderChild = (node: SvgNode) => {
+    let markup = rendered.get(node);
+    if (markup === undefined) {
+      markup = renderNode(node);
+      rendered.set(node, markup);
+    }
+    return markup;
+  };
   let previous:
     | { content: SvgContent; title?: string; desc?: string; result: SvgContent }
     | undefined;
@@ -57,10 +66,17 @@ export const createSvgPresentation = () => {
       if (tag === "desc") attrs["aria-describedby"] = id;
     }
     if (title) attrs.role ??= "img";
-    const result = {
+    let innerHTML: string | undefined;
+    const result: SvgContent = {
+      className: content.className,
+      style: content.style,
+      styleText: content.styleText,
+      ids: content.ids,
       node: { ...content.node, children },
       attrs,
-      innerHTML: children.map(renderNode).join(""),
+      get innerHTML() {
+        return (innerHTML ??= children.map(renderChild).join(""));
+      },
     };
     previous = { content, title, desc, result };
     return result;

@@ -17,6 +17,20 @@ export type ParsedInlineSvg = {
   innerHTML: string;
 };
 
+export const inlineSvgFromNode = (node: SvgNode, innerHTML?: string): ParsedInlineSvg => {
+  const { attributes, className, style, styleText } = splitAttributes(node.attrs);
+  return {
+    attrs: Object.fromEntries(attributes.map(({ name, value }) => [name, value])),
+    className,
+    style,
+    styleText,
+    node,
+    get innerHTML() {
+      return (innerHTML ??= node.children.map(renderNode).join(""));
+    },
+  };
+};
+
 export const parseInlineSvg = (markup: string, sanitize: boolean): ParsedInlineSvg | null => {
   if (!domParserAvailable()) return null;
   const parsedDocument = new DOMParser().parseFromString(markup, "image/svg+xml");
@@ -26,8 +40,5 @@ export const parseInlineSvg = (markup: string, sanitize: boolean): ParsedInlineS
   const node = toNodeFromElement(svg);
   const root = sanitize ? sanitizeNode(node) : node;
   if (!root) return null;
-  const { attributes, className, style, styleText } = splitAttributes(root.attrs);
-  const attrs = Object.fromEntries(attributes.map(({ name, value }) => [name, value]));
-  const innerHTML = sanitize ? root.children.map(renderNode).join("") : svg.innerHTML;
-  return { attrs, className, style, styleText, innerHTML, node: root };
+  return inlineSvgFromNode(root, sanitize ? undefined : svg.innerHTML);
 };

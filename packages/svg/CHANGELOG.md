@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.1
+
+### Changed
+
+- Reuse parsed and sanitized SVGs in Astro, serialize markup only when needed, and reuse unchanged child markup when labels change.
+
+### Fixed
+
+- Parse React Native SVGs with the XML parser so comments, CDATA, and malformed markup receive consistent handling.
+
 ## 0.6.0
 
 ### Added

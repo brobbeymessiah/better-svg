@@ -1,0 +1,24 @@
+import { DOMParser } from "@xmldom/xmldom";
+import { sanitizeNode, toNodeFromElement } from "./ast";
+import { inlineSvgFromNode } from "./sanitize";
+
+export const parseXmlNode = (markup: string, sanitize: boolean) => {
+  try {
+    const document = new DOMParser({
+      onError: (_level, message) => {
+        throw new Error(`Invalid SVG markup: ${message}`);
+      },
+    }).parseFromString(markup, "image/svg+xml");
+    const element = document.documentElement;
+    if (!element || element.tagName !== "svg") return null;
+    const node = toNodeFromElement(element);
+    return sanitize ? sanitizeNode(node) : node;
+  } catch {
+    return null;
+  }
+};
+
+export const parseXmlSvg = (markup: string, sanitize: boolean) => {
+  const node = parseXmlNode(markup, sanitize);
+  return node ? inlineSvgFromNode(node) : null;
+};

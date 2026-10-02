@@ -60,7 +60,7 @@
 
   const mergedStyle = $derived.by(() => {
     const parts: string[] = [];
-    if (state.status === "ready" && state.content.style) parts.push(state.content.style);
+    if (state.status === "ready" && state.content.styleText) parts.push(state.content.styleText);
     if (style) parts.push(style);
     const merged = parts.filter(Boolean).join(";") || undefined;
     return merged && state.status === "ready" && state.content.ids ? rewriteSvgValue("style", merged, state.content.ids) : merged;
