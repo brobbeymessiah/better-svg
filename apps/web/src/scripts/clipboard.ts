@@ -1,11 +1,11 @@
-let copiedText = new WeakMap<HTMLButtonElement, string>();
+let lastCopy: { button: HTMLButtonElement; text: string } | undefined;
 const pending = new WeakSet<HTMLButtonElement>();
 const resets = new Map<HTMLButtonElement, number>();
 
 document.addEventListener("astro:before-swap", () => {
   for (const timer of resets.values()) window.clearTimeout(timer);
   resets.clear();
-  copiedText = new WeakMap();
+  lastCopy = undefined;
 });
 
 export async function copyToClipboard(
@@ -15,8 +15,9 @@ export async function copyToClipboard(
   onReset?: () => void,
 ) {
   if (pending.has(button)) return;
-  let copied = copiedText.get(button) === text;
+  let copied = lastCopy?.button === button && lastCopy.text === text;
   if (!copied) {
+    lastCopy = undefined;
     pending.add(button);
     try {
       await navigator.clipboard.writeText(text);
@@ -28,14 +29,14 @@ export async function copyToClipboard(
     }
   }
   if (!button.isConnected) return;
-  if (copied) copiedText.set(button, text);
+  if (copied) lastCopy = { button, text };
   onResult(copied);
   window.clearTimeout(resets.get(button));
   resets.set(
     button,
     window.setTimeout(() => {
       resets.delete(button);
-      copiedText.delete(button);
+      if (lastCopy?.button === button) lastCopy = undefined;
       onReset?.();
     }, 2000),
   );
