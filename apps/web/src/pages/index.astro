@@ -466,6 +466,7 @@ import CodeBlock from "../components/CodeBlock.astro";
 
 <script>
   import { initCodeBlocks } from "../scripts/code-block";
+  import { copyToClipboard } from "../scripts/clipboard";
 
   let cleanup = () => {};
 
@@ -528,20 +529,20 @@ import CodeBlock from "../components/CodeBlock.astro";
     });
 
     const fwCopyBtn = document.querySelector<HTMLButtonElement>("[data-fw-copy]");
+    const copyIcon = fwCopyBtn?.innerHTML ?? "";
+    const copyLabel = fwCopyBtn?.getAttribute("aria-label") ?? "Copy full example";
     const copyHeroFile = () => {
       const active = Array.from(fwPanels).find((p) => !p.hidden);
-      if (!active) return;
-      const fw = active.dataset.fwPanel || "";
-      const file = fwLabelMap[fw] ?? "App.tsx";
-      const text = `// ${file}\n${active.textContent || ""}`;
-      navigator.clipboard.writeText(text).then(() => {
-        const original = fwCopyBtn?.innerHTML;
-        if (fwCopyBtn) {
-          fwCopyBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-          window.setTimeout(() => {
-            if (fwCopyBtn && original) fwCopyBtn.innerHTML = original;
-          }, 1500);
-        }
+      if (!active || !fwCopyBtn) return;
+      const text = active.querySelector("pre")?.textContent ?? "";
+      void copyToClipboard(fwCopyBtn, text, (copied) => {
+        fwCopyBtn.setAttribute("aria-label", copied ? "Copied full example" : "Copy failed");
+        fwCopyBtn.innerHTML = copied
+          ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+          : copyIcon;
+      }, () => {
+        fwCopyBtn.innerHTML = copyIcon;
+        fwCopyBtn.setAttribute("aria-label", copyLabel);
       });
     };
     fwCopyBtn?.addEventListener("click", copyHeroFile);

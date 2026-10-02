@@ -115,6 +115,7 @@ const current = commands.find((c) => c.pm === initial) ?? commands[0];
 </style>
 
 <script>
+  import { copyToClipboard } from "../scripts/clipboard";
   type PmTabsEl = HTMLElement & { _initialized?: boolean };
 
   const STORAGE_KEY = "bettersvg:pm";
@@ -178,11 +179,10 @@ const current = commands.find((c) => c.pm === initial) ?? commands[0];
 
     copyBtn.addEventListener("click", () => {
       const text = codeEl.textContent || "";
-      navigator.clipboard.writeText(text).then(() => {
-        copyBtn.classList.add("is-copied");
-        copyLabel.textContent = "Copied";
-        window.setTimeout(resetCopy, 2000);
-      });
+      void copyToClipboard(copyBtn, text, (copied) => {
+        copyBtn.classList.toggle("is-copied", copied);
+        copyLabel.textContent = copied ? "Copied" : "Copy failed";
+      }, resetCopy);
     });
   };
 
