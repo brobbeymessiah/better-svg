@@ -192,6 +192,9 @@ shows the loading template and resolves the SVG on the client.
 | `name`         | `SvgName`                  | Resolve a local SVG by name (no extension)    |
 | `sanitize`     | `boolean` (default `true`) | Remove unsafe SVG content before rendering    |
 | `cache`        | `boolean` (default `true`) | Cache remote SVG markup in memory             |
+| `size`         | `string` or `number`       | Set width and height together                 |
+| `title`        | `string`                   | Accessible SVG title text                     |
+| `desc`         | `string`                   | Accessible SVG description text               |
 | `fetchOptions` | `RequestInit`              | Options passed to `fetch`                     |
 | `loading`      | slot / `ReactNode`         | Render while SVG is loading or parsing        |
 | `fallback`     | slot / `ReactNode`         | Render when loading fails                     |
@@ -293,3 +296,26 @@ Keep those directories limited to assets the app uses. Development reloads
 the page when an SVG is added, edited, or removed. No optimization runs.
 The existing `import "@mhaadi/svg/vite"` registration remains available for
 default directories, but the config plugin handles custom paths and Astro SSR.
+
+## Size and accessible text
+
+```tsx
+<SVG name="logo" size={24} title="Acme" desc="Acme company logo" />
+<SVG name="wide-logo" size="2rem" width="6rem" title="Acme" />
+```
+
+`size` sets width and height. An explicit dimension takes precedence over
+`size`, and an omitted dimension keeps the SVG's authored value.
+
+On the web, `title` and `desc` replace the corresponding direct SVG children.
+Omitting either prop preserves its authored element. Strings are escaped as
+text. Generated references connect those elements to `aria-labelledby` and
+`aria-describedby`. A nonempty title defaults to `role="img"`. Explicit
+accessibility attributes override these defaults. Use `aria-hidden="true"`
+for decorative icons, or `ariaHidden` in Vue and Angular. Changing labels
+or dimensions does not fetch or parse the SVG again.
+
+React Native maps `title` to `accessibilityLabel` and `desc` to
+`accessibilityHint` on the wrapper View. An explicit accessibility label,
+hint, or `accessible` prop takes precedence. A nonempty title makes the
+wrapper accessible by default.

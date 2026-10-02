@@ -428,6 +428,24 @@ class MyIcon extends StatelessWidget {
                     <td class="text-zinc-muted text-sm">Resolves a local SVG by name. In JS: src/assets/svg → app/assets/svg → public/assets/svg. In Flutter: <code class="inline-code">localResolver(name)</code> → <code class="inline-code">assets/svg/{"{name}"}.svg</code>.</td>
                   </tr>
                   <tr>
+                    <td><code class="font-mono text-xs text-acid">size</code></td>
+                    <td><code class="font-mono text-xs text-[#e8c97e]">string | number</code></td>
+                    <td><code class="font-mono text-xs text-zinc-muted">unset</code></td>
+                    <td class="text-zinc-muted text-sm">Set width and height together. Explicit dimensions take precedence.</td>
+                  </tr>
+                  <tr>
+                    <td><code class="font-mono text-xs text-acid">title</code></td>
+                    <td><code class="font-mono text-xs text-[#e8c97e]">string</code></td>
+                    <td><code class="font-mono text-xs text-zinc-muted">unset</code></td>
+                    <td class="text-zinc-muted text-sm">Accessible title text. Web adapters render a title element. React Native sets the accessibility label.</td>
+                  </tr>
+                  <tr>
+                    <td><code class="font-mono text-xs text-acid">desc</code></td>
+                    <td><code class="font-mono text-xs text-[#e8c97e]">string</code></td>
+                    <td><code class="font-mono text-xs text-zinc-muted">unset</code></td>
+                    <td class="text-zinc-muted text-sm">Accessible description text. Web adapters render a desc element. React Native sets the accessibility hint.</td>
+                  </tr>
+                  <tr>
                     <td><code class="font-mono text-xs text-acid">sanitize</code></td>
                     <td><code class="font-mono text-xs text-[#e8c97e]">boolean</code></td>
                     <td><code class="font-mono text-xs text-zinc-muted">true</code></td>

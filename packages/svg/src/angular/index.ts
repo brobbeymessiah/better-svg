@@ -6,6 +6,7 @@ import {
   PLATFORM_ID,
   Renderer2,
   TemplateRef,
+  computed,
   effect,
   inject,
   input,
@@ -15,6 +16,7 @@ import {
   viewChild,
 } from "@angular/core";
 import { DomSanitizer } from "@angular/platform-browser";
+import { createSvgPresentation } from "../core/presentation";
 import { createWebSvgController, mergeSvgAttributes, type WebSvgState } from "../core/web";
 
 @Component({
@@ -25,7 +27,7 @@ import { createWebSvgController, mergeSvgAttributes, type WebSvgState } from "..
   template: `
     @switch (state().status) {
       @case ("ready") {
-        <svg #root [innerHTML]="html"></svg>
+        <svg #root [innerHTML]="html()"></svg>
       }
       @case ("loading") {
         <ng-container [ngTemplateOutlet]="loading() ?? null" />
@@ -45,6 +47,9 @@ export class SVG {
   readonly uniqueIds = input(true);
   readonly loading = input<TemplateRef<unknown>>();
   readonly fallback = input<TemplateRef<unknown>>();
+  readonly size = input<string | number>();
+  readonly title = input<string>();
+  readonly desc = input<string>();
   readonly width = input<string | number>();
   readonly height = input<string | number>();
   readonly viewBox = input<string>();
@@ -59,7 +64,20 @@ export class SVG {
   readonly svgError = output<Error>();
 
   protected readonly state = signal<WebSvgState>({ status: "loading" });
-  protected html: ReturnType<DomSanitizer["bypassSecurityTrustHtml"]> | undefined;
+  private readonly present = createSvgPresentation();
+  protected readonly content = computed(() => {
+    const state = this.state();
+    return state.status === "ready"
+      ? {
+          ...state.content,
+          ...this.present(state.content, { title: this.title(), desc: this.desc() }),
+        }
+      : undefined;
+  });
+  protected readonly html = computed(() => {
+    const content = this.content();
+    return content ? this.sanitizer.bypassSecurityTrustHtml(content.innerHTML) : undefined;
+  });
   private readonly root = viewChild<ElementRef<SVGSVGElement>>("root");
   private readonly renderer = inject(Renderer2);
   private readonly sanitizer = inject(DomSanitizer);
@@ -82,10 +100,6 @@ export class SVG {
       untracked(
         () =>
           void this.controller.load(options, (state) => {
-            this.html =
-              state.status === "ready"
-                ? this.sanitizer.bypassSecurityTrustHtml(state.content.innerHTML)
-                : undefined;
             this.state.set(state);
           }),
       );
@@ -94,9 +108,10 @@ export class SVG {
 
     effect((onCleanup) => {
       const root = this.root()?.nativeElement;
-      const state = this.state();
-      if (!root || state.status !== "ready") return;
-      const attrs = mergeSvgAttributes(state.content, {
+      const content = this.content();
+      if (!root || !content) return;
+      const attrs = mergeSvgAttributes(content, {
+        size: this.size(),
         width: this.width(),
         height: this.height(),
         viewBox: this.viewBox(),

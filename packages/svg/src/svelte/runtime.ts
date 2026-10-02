@@ -1,7 +1,10 @@
 import { ensureParsedSvg, resolveMarkup, resolveSource, type SvgNameInput } from "../core";
 import { createSvgId, scopeParsedSvgIds } from "../core/ids";
 
-export type SvelteSvgProps = {
+import type { SvgPresentation } from "../core/presentation";
+import type { SvgNode } from "../core/ast";
+
+export type SvelteSvgProps = SvgPresentation & {
   src?: string;
   name?: SvgNameInput;
   fetchOptions?: RequestInit;
@@ -21,10 +24,11 @@ export type SvelteSvgProps = {
   stroke?: string;
   role?: string;
   "aria-label"?: string;
-  "aria-hidden"?: boolean;
+  "aria-hidden"?: boolean | "true" | "false";
 };
 
 export type ParsedSvg = {
+  node: SvgNode;
   attrs: Record<string, string>;
   className?: string;
   style?: string;
@@ -43,6 +47,7 @@ export const parseSvgMarkup = (
   if (!inline) return null;
   const scoped = prefix ? scopeParsedSvgIds(inline, prefix) : inline;
   return {
+    node: scoped.node,
     attrs: scoped.attrs,
     className: scoped.className,
     style: scoped.styleText,

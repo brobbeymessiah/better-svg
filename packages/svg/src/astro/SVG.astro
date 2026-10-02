@@ -4,11 +4,13 @@ import { mergeSvgAttributes, type WebSvgOptions } from "../core/web";
 import { loadAstroSvg } from "./runtime";
 export { registerLocalSvgs } from "../core/local";
 
-export interface Props extends Omit<HTMLAttributes<"svg">, "style">, WebSvgOptions {
+import { createSvgPresentation, type SvgPresentation } from "../core/presentation";
+
+export interface Props extends Omit<HTMLAttributes<"svg">, "style">, WebSvgOptions, SvgPresentation {
   style?: string;
 }
 
-const { src, name, fetchOptions, cache = true, sanitize = true, uniqueIds = true, onSvgLoad, onSvgError, ...attributes } = Astro.props;
+const { size, title, desc, src, name, fetchOptions, cache = true, sanitize = true, uniqueIds = true, onSvgLoad, onSvgError, ...attributes } = Astro.props;
 let content;
 try {
   content = await loadAstroSvg({ src, name, fetchOptions, cache, sanitize, uniqueIds, onSvgLoad }, Astro.url);
@@ -16,7 +18,8 @@ try {
   const error = cause instanceof Error ? cause : new Error("Failed to load SVG.");
   onSvgError?.(error);
 }
-const attrs = content ? { ...attributes, ...mergeSvgAttributes(content, attributes) } : {};
+if (content) content = { ...content, ...createSvgPresentation()(content, { title, desc }) };
+const attrs = content ? { ...attributes, ...mergeSvgAttributes(content, { ...attributes, size }) } : {};
 ---
 
 {content ? <svg {...attrs} set:html={content.innerHTML} /> : <slot name="fallback" />}

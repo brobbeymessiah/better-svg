@@ -17,15 +17,12 @@ import {
 } from "../core";
 import { createSvgId, rewriteSvgAttributes, rewriteSvgValue, scopeParsedSvgIds } from "../core/ids";
 
+import type { ParsedInlineSvg } from "../core/sanitize";
+import { createSvgPresentation, svgDimensions } from "../core/presentation";
+
 type State = { status: "loading" } | { status: "error" } | { status: "ready"; content: ParsedSvg };
 
-type ParsedSvg = {
-  attrs: Record<string, string>;
-  className?: string;
-  style?: string;
-  innerHTML: string;
-  ids?: ReadonlyMap<string, string>;
-};
+type ParsedSvg = ParsedInlineSvg;
 
 const toCamelCaseStyle = (style: Record<string, string>): Record<string, string> => {
   const out: Record<string, string> = {};
@@ -71,6 +68,9 @@ export const SVG = defineComponent({
       type: Function as PropType<((error: Error) => void) | undefined>,
       default: undefined,
     },
+    size: { type: [String, Number] as PropType<string | number | undefined>, default: undefined },
+    title: { type: String, default: undefined },
+    desc: { type: String, default: undefined },
     width: { type: [String, Number] as PropType<string | number | undefined>, default: undefined },
     height: { type: [String, Number] as PropType<string | number | undefined>, default: undefined },
     viewBox: { type: String as PropType<string | undefined>, default: undefined },
@@ -91,6 +91,7 @@ export const SVG = defineComponent({
   emits: ["svg-load", "svg-error"],
   setup(props, { slots, emit }) {
     const prefix = createSvgId();
+    const present = createSvgPresentation();
     const state = ref<State>({ status: "loading" });
     let controller: AbortController | null = null;
 
@@ -118,14 +119,7 @@ export const SVG = defineComponent({
           const inline = ensureParsedSvg(resolved, markup, props.sanitize ?? true, doCache);
           if (!inline) throw new Error("SVG markup is invalid or unavailable in this environment.");
           const scoped = props.uniqueIds ? scopeParsedSvgIds(inline, prefix) : inline;
-          const parsed: ParsedSvg = {
-            attrs: scoped.attrs,
-            className: scoped.className,
-            style: scoped.styleText,
-            innerHTML: scoped.innerHTML,
-            ids: scoped.ids,
-          };
-          state.value = { status: "ready", content: parsed };
+          state.value = { status: "ready", content: scoped };
           emit("svg-load", markup);
         })
         .catch((err) => {
@@ -167,7 +161,7 @@ export const SVG = defineComponent({
     const mergedStyle = computed(() => {
       if (state.value.status !== "ready") return styleToText(props.style);
       const parts: string[] = [];
-      if (state.value.content.style) parts.push(state.value.content.style);
+      if (state.value.content.styleText) parts.push(state.value.content.styleText);
       const propStyle = styleToText(props.style);
       if (propStyle) parts.push(propStyle);
       const style = parts.filter(Boolean).join(";") || undefined;
@@ -176,9 +170,16 @@ export const SVG = defineComponent({
         : style;
     });
 
+    const presentation = computed(() =>
+      state.value.status === "ready" ? present(state.value.content, props) : undefined,
+    );
+
     const rootAttrs = computed(() => {
       if (state.value.status !== "ready") return {};
-      const out: Record<string, unknown> = { ...state.value.content.attrs };
+      const out: Record<string, unknown> = {
+        ...presentation.value?.attrs,
+        ...svgDimensions(props),
+      };
       if (props.width !== undefined) out.width = props.width;
       if (props.height !== undefined) out.height = props.height;
       if (props.viewBox !== undefined) out.viewBox = props.viewBox;
@@ -191,7 +192,10 @@ export const SVG = defineComponent({
       if (props.fill !== undefined) out.fill = props.fill;
       if (props.stroke !== undefined) out.stroke = props.stroke;
       if (props.role !== undefined) out.role = props.role;
-      if (props.ariaLabel !== undefined) out["aria-label"] = props.ariaLabel;
+      if (props.ariaLabel !== undefined) {
+        out["aria-label"] = props.ariaLabel;
+        delete out["aria-labelledby"];
+      }
       if (props.ariaHidden !== undefined) out["aria-hidden"] = props.ariaHidden;
       return rewriteSvgAttributes(out, state.value.content.ids);
     });
@@ -212,7 +216,7 @@ export const SVG = defineComponent({
         ...rootAttrs.value,
         class: mergedClass.value,
         style: mergedStyle.value,
-        innerHTML: current.content.innerHTML,
+        innerHTML: presentation.value?.innerHTML,
       });
     };
   },

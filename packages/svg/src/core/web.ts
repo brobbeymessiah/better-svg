@@ -62,7 +62,9 @@ export const createWebSvgController = () => {
   return { load, abort: () => current?.abort() };
 };
 
-export type WebSvgAttributes = {
+import { svgDimensions, type SvgPresentation } from "./presentation";
+
+export type WebSvgAttributes = SvgPresentation & {
   width?: string | number;
   height?: string | number;
   viewBox?: string;
@@ -70,16 +72,23 @@ export type WebSvgAttributes = {
   stroke?: string;
   role?: string;
   "aria-label"?: string;
+  "aria-labelledby"?: string;
+  "aria-describedby"?: string;
   "aria-hidden"?: boolean | "true" | "false";
   class?: string;
   style?: string;
 };
 
 export const mergeSvgAttributes = (content: ParsedInlineSvg, overrides: WebSvgAttributes) => {
-  const attrs: Record<string, string | number | boolean | undefined> = { ...content.attrs };
+  const attrs: Record<string, string | number | boolean | undefined> = {
+    ...content.attrs,
+    ...svgDimensions(overrides),
+  };
   for (const [key, value] of Object.entries(overrides)) {
-    if (value !== undefined) attrs[key] = value;
+    if (value !== undefined && !["size", "title", "desc"].includes(key)) attrs[key] = value;
   }
+  if (overrides["aria-label"] !== undefined && overrides["aria-labelledby"] === undefined)
+    delete attrs["aria-labelledby"];
   if (!attrs.viewBox && (overrides.width !== undefined || overrides.height !== undefined)) {
     attrs.viewBox = "0 0 24 24";
   }
