@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.3
+
+### Fixed
+
+- Scale SVGs authored with absolute-unit dimensions without cropping, and avoid inventing a viewBox for unknown source dimensions.
+
 ## 0.6.2
 
 ### Security

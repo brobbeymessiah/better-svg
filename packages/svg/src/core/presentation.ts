@@ -35,10 +35,27 @@ export const svgViewBox = (
   if (attrs.viewBox) return attrs.viewBox;
   if (size === undefined && width === undefined && height === undefined) return;
   const dimension = (value: string | undefined) => {
-    const number = Number(value?.trim().replace(/px$/i, ""));
-    return Number.isFinite(number) && number > 0 ? number : 24;
+    const length = value?.trim().match(/^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)([a-z]*)$/i);
+    if (!length) return;
+    const units: Record<string, number> = {
+      "": 1,
+      px: 1,
+      in: 96,
+      cm: 96 / 2.54,
+      mm: 96 / 25.4,
+      q: 96 / 101.6,
+      pt: 96 / 72,
+      pc: 16,
+    };
+    const scale = units[length[2]?.toLowerCase() ?? ""];
+    if (scale === undefined) return;
+    const number = Number(length[1]) * scale;
+    return Number.isFinite(number) && number > 0 ? number : undefined;
   };
-  return `0 0 ${dimension(attrs.width)} ${dimension(attrs.height)}`;
+  const sourceWidth = dimension(attrs.width);
+  const sourceHeight = dimension(attrs.height);
+  if (sourceWidth !== undefined && sourceHeight !== undefined)
+    return `0 0 ${sourceWidth} ${sourceHeight}`;
 };
 
 type SvgContent<Style> = ParsedInlineSvg<Style>;
