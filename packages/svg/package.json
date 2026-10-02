@@ -1,13 +1,17 @@
 {
   "name": "@mhaadi/svg",
-  "version": "0.2.3",
-  "description": "Inline SVG rendering for React, React Native, Vue, and Svelte.",
+  "version": "0.3.0",
+  "description": "Inline SVG rendering for React, React Native, Vue, Svelte, Solid, Astro, and Angular.",
   "keywords": [
+    "angular",
+    "astro",
+    "astro-component",
     "dompurify-alternative",
     "inline-svg",
     "react",
     "react-native",
     "sanitize",
+    "solid",
     "svelte",
     "svg",
     "vue"
@@ -57,6 +61,20 @@
     "./vite": {
       "types": "./dist/vite.d.ts",
       "import": "./dist/vite.js"
+    },
+    "./solid": {
+      "types": "./dist/solid/index.d.ts",
+      "import": "./dist/solid/index.js"
+    },
+    "./astro": {
+      "types": "./dist/astro/SVG.astro.d.ts",
+      "import": "./dist/astro/SVG.astro",
+      "default": "./dist/astro/SVG.astro"
+    },
+    "./angular": {
+      "types": "./dist/angular/index.d.ts",
+      "import": "./dist/angular/index.js",
+      "default": "./dist/angular/index.js"
     }
   },
   "publishConfig": {
@@ -65,31 +83,52 @@
   "scripts": {
     "build:js": "tsc -p tsconfig.json",
     "build:svelte": "node scripts/build-svelte.mjs",
-    "build": "pnpm run build:js && pnpm run build:svelte",
-    "check-types": "tsc --noEmit",
+    "build": "pnpm run build:js && pnpm run build:svelte && pnpm run build:angular && pnpm run build:astro",
+    "check-types": "tsc --noEmit && ngc -p tsconfig.angular.json --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:angular": "ngc -p tsconfig.angular.json",
+    "build:astro": "node scripts/build-astro.mjs"
+  },
+  "dependencies": {
+    "@xmldom/xmldom": "^0.9.12"
   },
   "devDependencies": {
+    "@angular/common": "~20.3.33",
+    "@angular/compiler": "~20.3.33",
+    "@angular/compiler-cli": "~20.3.33",
+    "@angular/core": "~20.3.33",
+    "@angular/platform-browser": "~20.3.33",
     "@better-svg/config": "workspace:*",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@types/react-native": "^0.73.0",
+    "astro": "^7.3.5",
     "happy-dom": "^20.10.6",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-native": "^0.85.3",
     "react-native-svg": "^15.15.5",
+    "rxjs": "^7.8.2",
+    "solid-js": "^1.9.15",
     "svelte": "^5.56.3",
-    "typescript": "catalog:",
+    "tslib": "^2.8.1",
+    "typescript": "~5.9.3",
     "vitest": "^2.1.9",
     "vue": "^3.5.35"
   },
   "peerDependencies": {
+    "@angular/common": ">=20",
+    "@angular/core": ">=20",
+    "@angular/platform-browser": ">=20",
+    "astro": ">=5",
     "react": ">=18",
-    "react-dom": ">=18"
+    "react-dom": ">=18",
+    "solid-js": ">=1.9 <2",
+    "svelte": ">=5",
+    "vue": ">=3"
   },
   "peerDependenciesMeta": {
     "react-dom": {
@@ -105,6 +144,24 @@
       "optional": true
     },
     "vue": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "solid-js": {
+      "optional": true
+    },
+    "astro": {
+      "optional": true
+    },
+    "@angular/core": {
+      "optional": true
+    },
+    "@angular/common": {
+      "optional": true
+    },
+    "@angular/platform-browser": {
       "optional": true
     }
   },
