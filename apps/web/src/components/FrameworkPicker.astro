@@ -213,6 +213,7 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
       });
     const trigger = document.getElementById("docs-mobile-current-fw");
     if (trigger) trigger.textContent = labels[id]?.label ?? id;
+    document.dispatchEvent(new CustomEvent("bettersvg:framework-change", { detail: { id } }));
   };
 
   const readSaved = (): string | null => {

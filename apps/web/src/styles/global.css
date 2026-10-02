@@ -584,6 +584,10 @@ code {
 }
 
 /* Mobile docs sidebar */
+[data-fw-show].hidden {
+  display: none;
+}
+
 .mobile-sidebar-overlay {
   position: fixed;
   inset: 0;
