@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, untrack } from "svelte";
   import { createSvgController, type SvelteSvgProps, type SvgState } from "./runtime";
+  import { rewriteSvgAttributes, rewriteSvgValue } from "../core/ids";
 
   let {
     src,
@@ -8,6 +9,7 @@
     fetchOptions,
     cache = true,
     sanitize = true,
+    uniqueIds = true,
     loading,
     fallback,
     onSvgLoad,
@@ -34,6 +36,7 @@
       fetchOptions,
       cache,
       sanitize,
+      uniqueIds,
       onSvgLoad: untrack(() => onSvgLoad),
       onSvgError: untrack(() => onSvgError),
     };
@@ -53,7 +56,8 @@
     const parts: string[] = [];
     if (state.status === "ready" && state.content.style) parts.push(state.content.style);
     if (style) parts.push(style);
-    return parts.filter(Boolean).join(";") || undefined;
+    const merged = parts.filter(Boolean).join(";") || undefined;
+    return merged && state.status === "ready" && state.content.ids ? rewriteSvgValue("style", merged, state.content.ids) : merged;
   });
 
   const rootAttrs = $derived.by(() => {
@@ -70,7 +74,7 @@
     if (role !== undefined) attrs.role = role;
     if (ariaLabel !== undefined) attrs["aria-label"] = ariaLabel;
     if (ariaHidden !== undefined) attrs["aria-hidden"] = ariaHidden;
-    return attrs;
+    return rewriteSvgAttributes(attrs, state.content.ids);
   });
 </script>
 

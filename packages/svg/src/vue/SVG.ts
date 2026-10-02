@@ -15,6 +15,7 @@ import {
   toCamelCase,
   type SvgNameInput,
 } from "../core";
+import { createSvgId, rewriteSvgAttributes, rewriteSvgValue, scopeParsedSvgIds } from "../core/ids";
 
 type State = { status: "loading" } | { status: "error" } | { status: "ready"; content: ParsedSvg };
 
@@ -23,6 +24,7 @@ type ParsedSvg = {
   className?: string;
   style?: string;
   innerHTML: string;
+  ids?: ReadonlyMap<string, string>;
 };
 
 const toCamelCaseStyle = (style: Record<string, string>): Record<string, string> => {
@@ -60,6 +62,7 @@ export const SVG = defineComponent({
     fetchOptions: { type: Object as PropType<RequestInit | undefined>, default: undefined },
     cache: { type: Boolean, default: true },
     sanitize: { type: Boolean, default: true },
+    uniqueIds: { type: Boolean, default: true },
     onSvgLoad: {
       type: Function as PropType<((markup: string) => void) | undefined>,
       default: undefined,
@@ -87,6 +90,7 @@ export const SVG = defineComponent({
   },
   emits: ["svg-load", "svg-error"],
   setup(props, { slots, emit }) {
+    const prefix = createSvgId();
     const state = ref<State>({ status: "loading" });
     let controller: AbortController | null = null;
 
@@ -113,11 +117,13 @@ export const SVG = defineComponent({
           if (c.signal.aborted) return;
           const inline = ensureParsedSvg(resolved, markup, props.sanitize ?? true, doCache);
           if (!inline) throw new Error("SVG markup is invalid or unavailable in this environment.");
+          const scoped = props.uniqueIds ? scopeParsedSvgIds(inline, prefix) : inline;
           const parsed: ParsedSvg = {
-            attrs: inline.attrs,
-            className: inline.className,
-            style: inline.styleText,
-            innerHTML: inline.innerHTML,
+            attrs: scoped.attrs,
+            className: scoped.className,
+            style: scoped.styleText,
+            innerHTML: scoped.innerHTML,
+            ids: scoped.ids,
           };
           state.value = { status: "ready", content: parsed };
           emit("svg-load", markup);
@@ -132,7 +138,14 @@ export const SVG = defineComponent({
     };
 
     watch(
-      () => [props.src, props.name, props.fetchOptions, props.cache, props.sanitize],
+      () => [
+        props.src,
+        props.name,
+        props.fetchOptions,
+        props.cache,
+        props.sanitize,
+        props.uniqueIds,
+      ],
       () => {
         run(props.src, props.name as SvgNameInput | undefined, props.cache ?? true);
       },
@@ -157,7 +170,10 @@ export const SVG = defineComponent({
       if (state.value.content.style) parts.push(state.value.content.style);
       const propStyle = styleToText(props.style);
       if (propStyle) parts.push(propStyle);
-      return parts.filter(Boolean).join(";") || undefined;
+      const style = parts.filter(Boolean).join(";") || undefined;
+      return style && state.value.content.ids
+        ? rewriteSvgValue("style", style, state.value.content.ids)
+        : style;
     });
 
     const rootAttrs = computed(() => {
@@ -177,7 +193,7 @@ export const SVG = defineComponent({
       if (props.role !== undefined) out.role = props.role;
       if (props.ariaLabel !== undefined) out["aria-label"] = props.ariaLabel;
       if (props.ariaHidden !== undefined) out["aria-hidden"] = props.ariaHidden;
-      return out;
+      return rewriteSvgAttributes(out, state.value.content.ids);
     });
 
     return (): unknown => {

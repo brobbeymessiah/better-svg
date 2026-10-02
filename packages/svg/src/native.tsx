@@ -1,4 +1,5 @@
 import * as React from "react";
+import { createSvgId, rewriteSvgAttributes, scopeSvgNodeIds } from "./core/ids";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 import {
   Svg,
@@ -227,6 +228,7 @@ export type NativeSvgProps = SvgSourceProps & {
   fetchOptions?: RequestInit;
   cache?: boolean;
   sanitize?: boolean;
+  uniqueIds?: boolean;
   loading?: React.ReactNode;
   fallback?: React.ReactNode;
   onSvgLoad?: (markup: string) => void;
@@ -248,6 +250,7 @@ export const SVG = React.forwardRef<unknown, NativeSvgProps>(
       fetchOptions,
       cache = true,
       sanitize = true,
+      uniqueIds = true,
       loading,
       fallback,
       onSvgLoad,
@@ -255,7 +258,11 @@ export const SVG = React.forwardRef<unknown, NativeSvgProps>(
     },
     _ref,
   ) => {
-    const [content, setContent] = React.useState<SvgNode | null>(null);
+    const [content, setContent] = React.useState<{
+      node: SvgNode;
+      ids?: ReadonlyMap<string, string>;
+    } | null>(null);
+    const [prefix] = React.useState(createSvgId);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<Error | null>(null);
 
@@ -291,7 +298,7 @@ export const SVG = React.forwardRef<unknown, NativeSvgProps>(
         if (!parsed) {
           throw new Error("SVG markup is invalid.");
         }
-        setContent(parsed);
+        setContent(uniqueIds ? scopeSvgNodeIds(parsed, prefix) : { node: parsed });
         setIsLoading(false);
         onLoadRef.current?.(markup);
       };
@@ -314,7 +321,7 @@ export const SVG = React.forwardRef<unknown, NativeSvgProps>(
         active = false;
         controller.abort();
       };
-    }, [resolvedSource, fetchOptions, cache, sanitize]);
+    }, [resolvedSource, fetchOptions, cache, sanitize, uniqueIds, prefix]);
 
     if (isLoading) {
       return loading ? <>{loading}</> : null;
@@ -326,7 +333,11 @@ export const SVG = React.forwardRef<unknown, NativeSvgProps>(
 
     return (
       <View style={style}>
-        {renderSvgNode(content, { color, fill, stroke, strokeWidth }, { width, height })}
+        {renderSvgNode(
+          content.node,
+          rewriteSvgAttributes({ color, fill, stroke, strokeWidth }, content.ids),
+          { width, height },
+        )}
       </View>
     );
   },

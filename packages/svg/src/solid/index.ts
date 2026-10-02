@@ -35,6 +35,7 @@ export const SVG = (props: SvgProps): JSX.Element => {
     "fetchOptions",
     "cache",
     "sanitize",
+    "uniqueIds",
     "onSvgLoad",
     "onSvgError",
     "loading",
@@ -50,6 +51,7 @@ export const SVG = (props: SvgProps): JSX.Element => {
       fetchOptions: options.fetchOptions,
       cache: options.cache,
       sanitize: options.sanitize,
+      uniqueIds: options.uniqueIds,
       onSvgLoad: (markup) => untrack(() => options.onSvgLoad?.(markup)),
       onSvgError: (error) => untrack(() => options.onSvgError?.(error)),
     };

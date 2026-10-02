@@ -226,6 +226,17 @@ for SVGs that depend on the current session or need fresh responses.
 
 React Native requires `react-native` and `react-native-svg` as peer dependencies.
 
+## Internal IDs
+
+Each component instance rewrites IDs and their local references so repeated SVGs
+can use gradients, masks, and clip paths without collisions. This also updates
+fragment links, CSS `url(#...)` values, accessibility ID lists, and animation
+timing references. The cached parse keeps its original IDs.
+
+Set `uniqueIds={false}` when external styles or other SVGs intentionally reference
+the original IDs. In Vue use `:unique-ids="false"`, and in Angular use
+`[uniqueIds]="false"`. The load callback still receives the original markup.
+
 ## Security
 
 `sanitize` is enabled by default. Sanitization allows static SVG elements,

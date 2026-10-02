@@ -1,4 +1,5 @@
 import { ensureParsedSvg, resolveMarkup, resolveSource, type SvgNameInput } from "../core";
+import { createSvgId, scopeParsedSvgIds } from "../core/ids";
 
 export type SvelteSvgProps = {
   src?: string;
@@ -6,6 +7,7 @@ export type SvelteSvgProps = {
   fetchOptions?: RequestInit;
   cache?: boolean;
   sanitize?: boolean;
+  uniqueIds?: boolean;
   loading?: unknown;
   fallback?: unknown;
   onSvgLoad?: (markup: string) => void;
@@ -27,6 +29,7 @@ export type ParsedSvg = {
   className?: string;
   style?: string;
   innerHTML: string;
+  ids?: ReadonlyMap<string, string>;
 };
 
 export const parseSvgMarkup = (
@@ -34,14 +37,17 @@ export const parseSvgMarkup = (
   markup: string,
   sanitize: boolean,
   cache = true,
+  prefix?: string,
 ): ParsedSvg | null => {
   const inline = ensureParsedSvg(source, markup, sanitize, cache);
   if (!inline) return null;
+  const scoped = prefix ? scopeParsedSvgIds(inline, prefix) : inline;
   return {
-    attrs: inline.attrs,
-    className: inline.className,
-    style: inline.styleText,
-    innerHTML: inline.innerHTML,
+    attrs: scoped.attrs,
+    className: scoped.className,
+    style: scoped.styleText,
+    innerHTML: scoped.innerHTML,
+    ids: scoped.ids,
   };
 };
 
@@ -51,6 +57,7 @@ export type SvgState =
   | { status: "ready"; content: ParsedSvg; markup: string };
 
 export const createSvgController = () => {
+  const prefix = createSvgId();
   let current: AbortController | null = null;
 
   const load = async (props: SvelteSvgProps, update: (state: SvgState) => void) => {
@@ -75,7 +82,13 @@ export const createSvgController = () => {
         cache: props.cache ?? true,
       });
       if (controller.signal.aborted) return;
-      const parsed = parseSvgMarkup(resolved, markup, props.sanitize ?? true, props.cache ?? true);
+      const parsed = parseSvgMarkup(
+        resolved,
+        markup,
+        props.sanitize ?? true,
+        props.cache ?? true,
+        props.uniqueIds === false ? undefined : prefix,
+      );
       if (!parsed) throw new Error("SVG markup is invalid or unavailable in this environment.");
       update({ status: "ready", content: parsed, markup });
       props.onSvgLoad?.(markup);

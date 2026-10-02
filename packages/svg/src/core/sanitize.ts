@@ -4,9 +4,12 @@ import {
   sanitizeNode,
   splitAttributes,
   toNodeFromElement,
+  type SvgNode,
 } from "./ast";
 
 export type ParsedInlineSvg = {
+  node: SvgNode;
+  ids?: ReadonlyMap<string, string>;
   attrs: Record<string, string>;
   className?: string;
   style?: Record<string, string>;
@@ -26,5 +29,5 @@ export const parseInlineSvg = (markup: string, sanitize: boolean): ParsedInlineS
   const { attributes, className, style, styleText } = splitAttributes(root.attrs);
   const attrs = Object.fromEntries(attributes.map(({ name, value }) => [name, value]));
   const innerHTML = sanitize ? root.children.map(renderNode).join("") : svg.innerHTML;
-  return { attrs, className, style, styleText, innerHTML };
+  return { attrs, className, style, styleText, innerHTML, node: root };
 };

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0
+
+### Fixed
+
+- Isolate SVG IDs per component instance so repeated gradients, masks, clip paths, and fragment references do not interfere across adapters.
+- Keep parsed SVG caches reusable while updating internal references, accessibility ID lists, and root attribute overrides for each instance.
+
+### Added
+
+- Add `uniqueIds`, enabled by default, with an opt-out for SVGs that intentionally reference IDs outside their own instance.
+
 ## 0.3.0
 
 ### Added

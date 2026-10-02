@@ -4,6 +4,7 @@ import { resolveMarkup, resolveSource } from "../core/resolve";
 import { decodeDataUrl, isInlineSvg } from "../core/url";
 import type { ParsedInlineSvg } from "../core/sanitize";
 import type { WebSvgOptions } from "../core/web";
+import { createSvgId, scopeParsedSvgIds } from "../core/ids";
 
 const toSvgNode = (element: Element): SvgNode => {
   const attrs = [];
@@ -53,7 +54,8 @@ export const loadAstroSvg = async (
     style,
     styleText,
     innerHTML: root.children.map(renderNode).join(""),
+    node: root,
   };
   options.onSvgLoad?.(markup);
-  return content;
+  return options.uniqueIds === false ? content : scopeParsedSvgIds(content, createSvgId());
 };

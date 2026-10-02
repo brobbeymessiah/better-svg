@@ -1,11 +1,13 @@
 import * as React from "react";
 import { ensureParsedSvg, resolveMarkup, resolveSource, type SvgNameInput } from "./core";
+import { createSvgId, rewriteSvgAttributes, scopeParsedSvgIds } from "./core/ids";
 
 type ParsedSvg = {
   attrs: Record<string, string>;
   className?: string;
   style?: React.CSSProperties;
   innerHTML: string;
+  ids?: ReadonlyMap<string, string>;
 };
 
 type SvgSourceProps = { src: string; name?: never } | { name: SvgNameInput; src?: never };
@@ -15,6 +17,7 @@ export type SvgProps = Omit<React.SVGProps<SVGSVGElement>, "children" | "dangero
     fetchOptions?: RequestInit;
     cache?: boolean;
     sanitize?: boolean;
+    uniqueIds?: boolean;
     loading?: React.ReactNode;
     fallback?: React.ReactNode;
     onSvgLoad?: (markup: string) => void;
@@ -29,6 +32,7 @@ export const SVG = React.forwardRef<SVGSVGElement, SvgProps>(
       fetchOptions,
       cache = true,
       sanitize = true,
+      uniqueIds = true,
       loading,
       fallback,
       onSvgLoad,
@@ -42,6 +46,7 @@ export const SVG = React.forwardRef<SVGSVGElement, SvgProps>(
     const [content, setContent] = React.useState<ParsedSvg | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<Error | null>(null);
+    const [prefix] = React.useState(createSvgId);
 
     const resolvedSource = React.useMemo(() => resolveSource(src, name), [name, src]);
 
@@ -73,11 +78,13 @@ export const SVG = React.forwardRef<SVGSVGElement, SvgProps>(
       const runWithCached = (markup: string) => {
         const inline = ensureParsedSvg(resolvedSource, markup, sanitize, cache);
         if (!inline) throw new Error("SVG markup is invalid or unavailable in this environment.");
+        const scoped = uniqueIds ? scopeParsedSvgIds(inline, prefix) : inline;
         const parsed: ParsedSvg = {
-          attrs: inline.attrs,
-          className: inline.className,
-          style: inline.style as React.CSSProperties | undefined,
-          innerHTML: inline.innerHTML,
+          attrs: scoped.attrs,
+          className: scoped.className,
+          style: scoped.style as React.CSSProperties | undefined,
+          innerHTML: scoped.innerHTML,
+          ids: scoped.ids,
         };
         setContent(parsed);
         setIsLoading(false);
@@ -102,7 +109,7 @@ export const SVG = React.forwardRef<SVGSVGElement, SvgProps>(
         active = false;
         controller.abort();
       };
-    }, [resolvedSource, fetchOptions, cache, sanitize]);
+    }, [resolvedSource, fetchOptions, cache, sanitize, uniqueIds, prefix]);
 
     if (isLoading) {
       return loading ? <>{loading}</> : null;
@@ -119,9 +126,9 @@ export const SVG = React.forwardRef<SVGSVGElement, SvgProps>(
       <svg
         ref={ref}
         {...content.attrs}
-        {...rest}
+        {...rewriteSvgAttributes(rest, content.ids)}
         className={mergedClassName || undefined}
-        style={mergedStyle}
+        style={rewriteSvgAttributes(mergedStyle ?? {}, content.ids)}
         dangerouslySetInnerHTML={{ __html: content.innerHTML }}
       />
     );
