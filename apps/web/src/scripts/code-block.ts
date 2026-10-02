@@ -33,27 +33,11 @@ function showTooltip(target: HTMLElement, text = "Copied") {
   tooltipTimeout = window.setTimeout(() => t.classList.remove("is-visible"), 1500);
 }
 
-async function copyText(target: HTMLElement, text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    showTooltip(target, "Copy failed");
-    return false;
-  }
-}
-
-function formatCopyText(block: HTMLElement, fullFile = false) {
+function formatCopyText(block: HTMLElement) {
   const pre = block.querySelector("pre");
   if (!pre) return "";
   let text = pre.textContent || "";
   text = text.replace(/^\$\s*/, "");
-  if (fullFile) {
-    const file = block.getAttribute("data-file");
-    if (file) {
-      text = `// ${file}\n${text}`;
-    }
-  }
   return text;
 }
 
@@ -68,7 +52,7 @@ export function initCodeBlocks() {
   resizeObserver ??= new ResizeObserver((entries) => {
     entries.forEach(({ target }) => updateWrap(target));
   });
-  document.querySelectorAll(".code-block").forEach((block) => {
+  document.querySelectorAll<HTMLElement>(".code-block").forEach((block) => {
     if (block.querySelector(".code-block-header")) return;
 
     block.classList.add("has-header");
@@ -112,17 +96,25 @@ export function initCodeBlocks() {
     copyBtn.className = "copy-btn";
     copyBtn.setAttribute("aria-label", "Copy code");
     copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`;
-    copyBtn.addEventListener("click", async () => {
-      const text = formatCopyText(block as HTMLElement, false);
-      if (await copyText(copyBtn, text)) {
-        copyBtn.classList.add("copied");
-        copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied`;
-        showTooltip(copyBtn, "Copied");
-        window.setTimeout(() => {
+    const copyIcon = copyBtn.innerHTML;
+    copyBtn.addEventListener("click", () => {
+      void copyToClipboard(
+        copyBtn,
+        formatCopyText(block),
+        (copied) => {
+          if (!copied) {
+            showTooltip(copyBtn, "Copy failed");
+            return;
+          }
+          copyBtn.classList.add("copied");
+          copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied`;
+          showTooltip(copyBtn, "Copied");
+        },
+        () => {
           copyBtn.classList.remove("copied");
-          copyBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`;
-        }, 2000);
-      }
+          copyBtn.innerHTML = copyIcon;
+        },
+      );
     });
     actions.appendChild(copyBtn);
 
@@ -132,11 +124,10 @@ export function initCodeBlocks() {
       fullBtn.className = "copy-btn copy-full-btn";
       fullBtn.setAttribute("aria-label", `Copy full file (${file})`);
       fullBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2M8 17h2M14 13h2M14 17h2"/></svg> File`;
-      fullBtn.addEventListener("click", async () => {
-        const text = formatCopyText(block as HTMLElement, true);
-        if (await copyText(fullBtn, text)) {
-          showTooltip(fullBtn, `Copied ${file}`);
-        }
+      fullBtn.addEventListener("click", () => {
+        void copyToClipboard(fullBtn, formatCopyText(block), (copied) => {
+          showTooltip(fullBtn, copied ? `Copied ${file}` : "Copy failed");
+        });
       });
       actions.appendChild(fullBtn);
     }
@@ -165,3 +156,4 @@ export function initCodeBlocks() {
     }
   });
 }
+import { copyToClipboard } from "./clipboard";

@@ -13,7 +13,6 @@ export const frameworks: Framework[] = [
   { id: "solid", label: "Solid", sub: "@mhaadi/svg/solid" },
   { id: "astro", label: "Astro", sub: "@mhaadi/svg/astro" },
   { id: "angular", label: "Angular", sub: "@mhaadi/svg/angular" },
-  { id: "flutter", label: "Flutter", sub: "svg_flutter", published: false },
 ];
 
 export const frameworkLabels: Record<string, Framework> = Object.fromEntries(

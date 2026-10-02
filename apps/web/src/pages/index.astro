@@ -14,7 +14,6 @@ const marqueeItems = [
   "Solid",
   "Astro",
   "Angular",
-  "Flutter",
   "inline rendering",
   "zero wrappers",
   "sanitized by default",
@@ -29,7 +28,7 @@ const featureCards = [
   {
     icon: `<path d="M12 3v1m0 16v1M4.22 4.22l.707.707m12.728 12.728.707.707M1 12h2m18 0h2M4.22 19.78l.707-.707M18.071 5.929l.707-.707" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`,
     title: "Inline rendering",
-    desc: "On the web (React, Vue, Svelte, Solid, Astro, Angular) renders a real <svg> element — not an <img> tag — so CSS currentColor, animations, and JavaScript work natively. React Native renders a react-native-svg tree and Flutter renders via flutter_svg.",
+    desc: "On the web (React, Vue, Svelte, Solid, Astro, Angular) renders a real <svg> element — not an <img> tag — so CSS currentColor, animations, and JavaScript work natively. React Native renders a react-native-svg tree.",
   },
   {
     icon: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`,
@@ -54,13 +53,13 @@ const featureCards = [
   {
     icon: `<path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`,
     title: "Loading & fallback",
-    desc: "Render a loading state while fetching and a fallback state on error. Slots in Vue, snippets in Svelte, Widgets in Flutter.",
+    desc: "Render a loading state while fetching and a fallback state on error. Slots in Vue, snippets in Svelte.",
   },
 ];
 import CodeBlock from "../components/CodeBlock.astro";
 ---
 
-<Base title="BetterSVG — Inline SVG for React, React Native, Vue, Svelte, Solid, Astro, Angular, Flutter">
+<Base title="BetterSVG — Inline SVG for React, React Native, Vue, Svelte, Solid, Astro, and Angular">
   <!-- NAV -->
   <nav class="sticky top-0 left-0 right-0 z-50 border-b border-coal-2 bg-coal/90 backdrop-blur-md">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 lg:px-4 py-3 lg:py-4">
@@ -74,6 +73,7 @@ import CodeBlock from "../components/CodeBlock.astro";
 
       <div class="hidden items-center gap-8 md:flex">
         <a href="/docs" class="link-underline text-sm text-zinc-muted hover:text-[#e8e8e8] transition-colors">Docs</a>
+        <a href="/changelog" class="link-underline text-sm text-zinc-muted hover:text-[#e8e8e8] transition-colors">Changelog</a>
         <a href="https://github.com/mhaadiabu/better-svg" class="link-underline text-sm text-zinc-muted hover:text-[#e8e8e8] transition-colors" target="_blank">GitHub</a>
         <a
           href="/docs"
@@ -94,6 +94,7 @@ import CodeBlock from "../components/CodeBlock.astro";
     <div id="mobile-menu" class="hidden border-t border-coal-2 px-4 py-4 md:hidden">
       <div class="flex flex-col gap-4">
         <a href="/docs" class="text-sm text-zinc-muted hover:text-acid transition-colors">Docs</a>
+        <a href="/changelog" class="text-sm text-zinc-muted hover:text-acid transition-colors">Changelog</a>
         <a href="https://github.com/mhaadiabu/better-svg" class="text-sm text-zinc-muted hover:text-acid transition-colors">GitHub</a>
         <a href="/docs" class="text-sm font-medium text-acid">Get started →</a>
       </div>
@@ -128,7 +129,7 @@ import CodeBlock from "../components/CodeBlock.astro";
         <!-- Badge -->
         <div class="mb-8 inline-flex items-center gap-2 border border-coal-4 bg-coal-1 px-3 py-1.5 animate-fade-in delay-100">
           <span class="h-1.5 w-1.5 bg-acid animate-pulse"></span>
-          <span class="font-mono text-xs text-zinc-muted">v{version} — now on npm</span>
+          <span class="font-mono text-xs text-zinc-muted">v{version}</span>
         </div>
 
         <!-- Headline -->
@@ -141,7 +142,7 @@ import CodeBlock from "../components/CodeBlock.astro";
         <!-- Sub -->
         <p class="mt-8 max-w-md text-base text-zinc-muted leading-relaxed animate-fade-up delay-400">
           Resolve, sanitize, and render SVGs inline in React, React Native, Vue,
-          Svelte, Solid, Astro, Angular, and Flutter. From local names to remote URLs — with full control
+          Svelte, Solid, Astro, and Angular. From local names to remote URLs — with full control
           over props, caching, and security.
         </p>
 
@@ -193,13 +194,12 @@ import CodeBlock from "../components/CodeBlock.astro";
 
             <div class="relative border border-coal-4 bg-coal">
               <!-- Tab bar -->
-              <div class="flex border-b border-coal-2 overflow-x-auto" data-fw-tabs>
+              <div class="flex flex-wrap border-b border-coal-2" data-fw-tabs>
                 <button type="button" class="fw-tab is-active" data-fw-tab="react">React</button>
                 <button type="button" class="fw-tab" data-fw-tab="react-native">React Native</button>
                 <button type="button" class="fw-tab" data-fw-tab="vue">Vue</button>
                 <button type="button" class="fw-tab" data-fw-tab="svelte">Svelte</button>
                 {adapterExamples.map((adapter) => <button type="button" class="fw-tab" data-fw-tab={adapter.id}>{adapter.label}</button>)}
-                <button type="button" class="fw-tab" data-fw-tab="flutter">Flutter</button>
               </div>
 
               <!-- Code panels -->
@@ -239,16 +239,7 @@ import CodeBlock from "../components/CodeBlock.astro";
   height="24"
 />`} lang="svelte" /></div>
                 {adapterExamples.map((adapter) => <div data-fw-panel={adapter.id} hidden><CodeBlock code={adapter.code} lang={adapter.lang} /></div>)}
-                <div data-fw-panel="flutter" hidden><CodeBlock code={`import 'package:svg_flutter/svg_flutter.dart';
 
-Svg(
-  src: 'https://cdn.example.com/icon.svg',
-  width: 24,
-  height: 24,
-  color: const Color(0xFF111827),
-  loading: const CircularProgressIndicator(),
-  fallback: const Icon(Icons.broken_image),
-)`} lang="dart" /></div>
               </div>
             </div>
 
@@ -284,8 +275,8 @@ Svg(
   <div class="overflow-hidden border-y border-coal-2 bg-coal-1 py-3">
     <div class="marquee-track flex whitespace-nowrap gap-0">
       {
-        Array.from({ length: 2 }).map(() => (
-          <span class="inline-flex shrink-0 gap-0">
+        Array.from({ length: 2 }).map((_, index) => (
+          <span class="marquee-group" aria-hidden={index > 0 ? "true" : undefined}>
             {marqueeItems.map((item) => (
               <span class="inline-flex items-center gap-4 px-4 font-mono text-xs text-zinc-muted uppercase tracking-widest">
                 <span class="h-1 w-1 bg-acid/40 shrink-0"></span>
@@ -303,7 +294,7 @@ Svg(
     <div class="mx-auto max-w-6xl px-4 py-16 lg:py-24">
       <div class="mb-10 lg:mb-14 flex items-end justify-between gap-4">
         <div>
-          <p class="mb-2 font-mono text-xs tracking-widest text-acid uppercase">Eight adapters, one mental model</p>
+          <p class="mb-2 font-mono text-xs tracking-widest text-acid uppercase">Seven adapters, one mental model</p>
           <h2 class="font-display text-5xl tracking-wider text-[#e8e8e8]">FRAMEWORKS</h2>
         </div>
         <a href="/docs" class="hidden sm:flex items-center gap-2 text-sm text-zinc-muted hover:text-acid transition-colors group">
@@ -415,7 +406,7 @@ Svg(
         SHIP<br/><span class="text-acid acid-glow">BETTER SVG</span><span class="opacity-30"> TODAY.</span>
       </h2>
       <p class="mt-6 mx-auto max-w-md text-zinc-muted">
-        One mental model. Eight frameworks. Every SVG format. Zero compromises on
+        One mental model. Seven frameworks. Every SVG format. Zero compromises on
         security or performance.
       </p>
       <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -441,6 +432,7 @@ Svg(
       </div>
       <div class="flex items-center gap-6">
         <a href="/docs" class="text-xs text-zinc-muted hover:text-acid transition-colors">Docs</a>
+        <a href="/changelog" class="text-xs text-zinc-muted hover:text-acid transition-colors">Changelog</a>
         <a href="https://github.com/mhaadiabu/better-svg" target="_blank" class="text-xs text-zinc-muted hover:text-acid transition-colors">GitHub</a>
         <a href="https://www.npmjs.com/package/@mhaadi/svg" target="_blank" class="text-xs text-zinc-muted hover:text-acid transition-colors">npm</a>
       </div>
@@ -451,6 +443,7 @@ Svg(
 
 <style>
   .fw-tab {
+    flex: 1 0 auto;
     padding: 8px 14px;
     font-family: "JetBrains Mono", monospace;
     font-size: 0.75rem;
@@ -473,6 +466,7 @@ Svg(
 
 <script>
   import { initCodeBlocks } from "../scripts/code-block";
+  import { copyToClipboard } from "../scripts/clipboard";
 
   let cleanup = () => {};
 
@@ -521,7 +515,6 @@ Svg(
       solid: "App.tsx",
       astro: "Icon.astro",
       angular: "app.component.ts",
-      flutter: "icon.dart",
     };
     const tabHandlers: Array<{ el: HTMLButtonElement; fn: () => void }> = [];
     fwTabs.forEach((tab) => {
@@ -536,20 +529,20 @@ Svg(
     });
 
     const fwCopyBtn = document.querySelector<HTMLButtonElement>("[data-fw-copy]");
+    const copyIcon = fwCopyBtn?.innerHTML ?? "";
+    const copyLabel = fwCopyBtn?.getAttribute("aria-label") ?? "Copy full example";
     const copyHeroFile = () => {
       const active = Array.from(fwPanels).find((p) => !p.hidden);
-      if (!active) return;
-      const fw = active.dataset.fwPanel || "";
-      const file = fwLabelMap[fw] ?? "App.tsx";
-      const text = `// ${file}\n${active.textContent || ""}`;
-      navigator.clipboard.writeText(text).then(() => {
-        const original = fwCopyBtn?.innerHTML;
-        if (fwCopyBtn) {
-          fwCopyBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-          window.setTimeout(() => {
-            if (fwCopyBtn && original) fwCopyBtn.innerHTML = original;
-          }, 1500);
-        }
+      if (!active || !fwCopyBtn) return;
+      const text = active.querySelector("pre")?.textContent ?? "";
+      void copyToClipboard(fwCopyBtn, text, (copied) => {
+        fwCopyBtn.setAttribute("aria-label", copied ? "Copied full example" : "Copy failed");
+        fwCopyBtn.innerHTML = copied
+          ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+          : copyIcon;
+      }, () => {
+        fwCopyBtn.innerHTML = copyIcon;
+        fwCopyBtn.setAttribute("aria-label", copyLabel);
       });
     };
     fwCopyBtn?.addEventListener("click", copyHeroFile);

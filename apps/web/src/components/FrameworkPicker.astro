@@ -46,7 +46,7 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
     </svg>
   </button>
 
-  <div class="fw-content" data-fw-content role="listbox" aria-label="Frameworks" hidden>
+  <div class="fw-content" data-fw-content role="listbox" aria-label="Frameworks" popover="manual" hidden>
     {frameworks.map((fw) => (
       <div
         role="option"
@@ -132,10 +132,11 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
     color: #b9ff4b;
   }
   .fw-content {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    width: max-content;
+    max-width: calc(100vw - 32px);
     z-index: 60;
     background: #0a0a0a;
     border: 1px solid #2a2a2a;
@@ -177,9 +178,7 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
     font-size: 0.75rem;
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
   .fw-option[data-highlighted="true"] .fw-option-sub,
   .fw-option.is-selected .fw-option-sub {
@@ -191,7 +190,7 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
     flex-shrink: 0;
   }
   .fw-option:not(.is-selected) .fw-option-check {
-    display: none;
+    visibility: hidden;
   }
 </style>
 
@@ -214,6 +213,7 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
       });
     const trigger = document.getElementById("docs-mobile-current-fw");
     if (trigger) trigger.textContent = labels[id]?.label ?? id;
+    document.dispatchEvent(new CustomEvent("bettersvg:framework-change", { detail: { id } }));
   };
 
   const readSaved = (): string | null => {
@@ -273,11 +273,27 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
     if (valueEl) valueEl.textContent = labelText;
     if (subEl) subEl.textContent = subText;
     if (opts.close) {
-      const content = picker.querySelector<HTMLElement>("[data-fw-content]");
-      const trigger = picker.querySelector<HTMLElement>("[data-fw-trigger]");
-      if (content) content.hidden = true;
-      if (trigger) trigger.setAttribute("aria-expanded", "false");
+      setPickerOpen(picker, false);
     }
+  };
+
+  const setPickerOpen = (picker: HTMLElement, open: boolean) => {
+    const trigger = picker.querySelector<HTMLElement>("[data-fw-trigger]");
+    const content = picker.querySelector<HTMLElement>("[data-fw-content]");
+    if (!trigger || !content) return;
+    trigger.setAttribute("aria-expanded", String(open));
+    if (!open) {
+      content.hidePopover();
+      content.hidden = true;
+      return;
+    }
+    const bounds = trigger.getBoundingClientRect();
+    content.style.minWidth = `${Math.min(bounds.width, window.innerWidth - 32)}px`;
+    content.hidden = false;
+    content.showPopover();
+    const menu = content.getBoundingClientRect();
+    content.style.left = `${Math.max(16, Math.min(bounds.left, window.innerWidth - menu.width - 16))}px`;
+    content.style.top = `${Math.max(8, Math.min(bounds.bottom + 4, window.innerHeight - menu.height - 8))}px`;
   };
 
   const highlightNext = (picker: HTMLElement, dir: 1 | -1) => {
@@ -328,13 +344,9 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
         .querySelectorAll<HTMLElement>("[data-fw-picker]")
         .forEach((other) => {
           if (other === picker) return;
-          const t = other.querySelector<HTMLElement>("[data-fw-trigger]");
-          const c = other.querySelector<HTMLElement>("[data-fw-content]");
-          if (t) t.setAttribute("aria-expanded", "false");
-          if (c) c.hidden = true;
+          setPickerOpen(other, false);
         });
-      trigger.setAttribute("aria-expanded", expanded ? "false" : "true");
-      content.hidden = expanded;
+      setPickerOpen(picker, !expanded);
     });
 
     options.forEach((opt) => {
@@ -360,23 +372,20 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
       if (ke.key === "ArrowDown" || ke.key === "Enter" || ke.key === " ") {
         ke.preventDefault();
         if (!isOpen) {
-          trigger.setAttribute("aria-expanded", "true");
-          if (content) content.hidden = false;
+          setPickerOpen(picker, true);
           return;
         }
         highlightNext(picker, 1);
       } else if (ke.key === "ArrowUp") {
         ke.preventDefault();
         if (!isOpen) {
-          trigger.setAttribute("aria-expanded", "true");
-          if (content) content.hidden = false;
+          setPickerOpen(picker, true);
           return;
         }
         highlightNext(picker, -1);
       } else if (ke.key === "Escape") {
         if (isOpen) {
-          trigger.setAttribute("aria-expanded", "false");
-          if (content) content.hidden = true;
+          setPickerOpen(picker, false);
         }
       }
     });
@@ -384,8 +393,7 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
     content?.addEventListener("keydown", (e) => {
       const ke = e as KeyboardEvent;
       if (ke.key === "Escape") {
-        trigger?.setAttribute("aria-expanded", "false");
-        if (content) content.hidden = true;
+        setPickerOpen(picker, false);
         trigger?.focus();
       } else if (ke.key === "Enter") {
         const highlighted = Array.from(options).find(
@@ -409,10 +417,7 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
     document
       .querySelectorAll<HTMLElement>("[data-fw-picker]")
       .forEach((picker) => {
-        const trigger = picker.querySelector<HTMLElement>("[data-fw-trigger]");
-        const content = picker.querySelector<HTMLElement>("[data-fw-content]");
-        if (trigger) trigger.setAttribute("aria-expanded", "false");
-        if (content) content.hidden = true;
+        setPickerOpen(picker, false);
       });
   };
 
@@ -428,6 +433,9 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeAllPickers();
   });
+  window.addEventListener("resize", closeAllPickers);
+  window.addEventListener("scroll", closeAllPickers, { passive: true });
+  document.addEventListener("astro:before-swap", closeAllPickers);
 
   const initAll = () => {
     document

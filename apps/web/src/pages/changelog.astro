@@ -1,0 +1,212 @@
+---
+import Base from "../layouts/Base.astro";
+import { Content, getHeadings } from "../../../../packages/svg/CHANGELOG.md";
+
+const versions = getHeadings().filter((heading) => heading.depth === 2);
+---
+
+<Base title="Changelog | BetterSVG" description="Version history and changes to @mhaadi/svg.">
+  <nav id="changelog-header" class="sticky top-0 z-50 border-b border-coal-2 bg-coal/90 backdrop-blur-md">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+      <a href="/" class="font-display text-xl tracking-wider text-[#e8e8e8]">BETTERSVG</a>
+      <div class="flex items-center gap-5 text-sm">
+        <a href="/docs" class="text-zinc-muted hover:text-acid transition-colors">Docs</a>
+        <a href="/changelog" aria-current="page" class="text-acid">Changelog</a>
+        <a href="https://github.com/mhaadiabu/better-svg" class="hidden text-zinc-muted hover:text-acid transition-colors sm:block">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <aside class="version-toc hidden lg:block fixed left-0 bottom-0 w-60 overflow-y-auto border-r border-coal-2 px-7 py-8" aria-label="Version navigation">
+    <p class="mb-2 px-3 font-mono text-[10px] tracking-widest text-zinc-muted">@mhaadi/svg</p>
+    <h2 class="mb-5 px-3 font-mono text-xs tracking-widest text-zinc-muted">VERSIONS</h2>
+    <nav aria-label="Package versions" class="version-nav flex flex-col gap-1">
+      {versions.map((version) => (
+        <a href={`#${version.slug}`} data-version-link class="px-3 py-2 font-mono text-sm text-zinc-muted hover:bg-coal-1 hover:text-acid transition-colors">{version.text}</a>
+      ))}
+    </nav>
+  </aside>
+
+  <button id="version-trigger" type="button" class="version-trigger border-b border-coal-2 bg-coal/95 backdrop-blur-md px-4 py-2.5 text-xs font-mono text-zinc-muted hover:text-acid transition-colors" aria-haspopup="dialog" aria-controls="version-drawer" aria-expanded="false" hidden>
+    <span>Versions <span class="text-zinc-muted">·</span> <span data-current-version class="text-acid">{versions[0]?.text}</span></span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+  </button>
+  <dialog id="version-drawer" class="version-drawer" aria-labelledby="version-drawer-title">
+    <div class="mb-6 flex items-center justify-between gap-4">
+      <h2 id="version-drawer-title" class="font-mono text-xs tracking-widest text-zinc-muted">VERSIONS</h2>
+      <button type="button" data-close-versions class="p-2 text-zinc-muted hover:text-acid" aria-label="Close versions">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" /></svg>
+      </button>
+    </div>
+    <nav aria-label="Package versions" class="version-nav flex flex-col gap-1">
+      {versions.map((version) => (
+        <a href={`#${version.slug}`} data-version-link class="px-3 py-2 font-mono text-sm text-zinc-muted hover:bg-coal-1 hover:text-acid transition-colors">{version.text}</a>
+      ))}
+    </nav>
+  </dialog>
+
+  <div class="lg:pl-60">
+  <main id="main-content" class="mx-auto max-w-3xl px-4 py-12 lg:py-20">
+    <p class="mb-3 font-mono text-xs tracking-widest text-acid">@mhaadi/svg</p>
+    <h1 class="font-display text-5xl tracking-wider text-[#e8e8e8]">CHANGELOG</h1>
+    <p class="mt-4 text-zinc-muted">Changes by package version.</p>
+    <nav id="version-links" aria-label="Package versions" class="mt-8 flex flex-wrap gap-2 lg:hidden">
+      {versions.map((version) => (
+        <a href={`#${version.slug}`} class="border border-coal-4 px-3 py-1.5 font-mono text-xs text-zinc-muted hover:border-acid hover:text-acid transition-colors">{version.text}</a>
+      ))}
+    </nav>
+    <article class="changelog mt-10"><Content /></article>
+  </main>
+  </div>
+</Base>
+
+<style>
+  :global(html:has(.changelog)) { scroll-padding-top: 0; }
+  .version-toc { top: var(--changelog-header-height, 61px); }
+  .version-trigger {
+    position: fixed;
+    top: var(--changelog-header-height, 61px);
+    left: 0;
+    z-index: 40;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .version-trigger[hidden] { display: none; }
+  .version-drawer {
+    position: fixed;
+    inset: 0 auto 0 0;
+    margin: 0;
+    width: min(260px, 100vw);
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    padding: 24px 16px;
+    border: 0;
+    border-right: 1px solid var(--color-coal-2);
+    background: #0a0a0a;
+    color: #e8e8e8;
+    overflow-y: auto;
+    transition: transform 0.25s ease, display 0.25s allow-discrete, overlay 0.25s allow-discrete;
+    transform: translateX(-100%);
+  }
+  .version-drawer[open] { transform: translateX(0); }
+  @starting-style {
+    .version-drawer[open] { transform: translateX(-100%); }
+  }
+  .version-drawer::backdrop { background: rgb(0 0 0 / 60%); backdrop-filter: blur(4px); }
+  .version-nav a[aria-current="location"] { color: var(--color-acid); background: var(--color-coal-1); }
+  @media (prefers-reduced-motion: reduce) {
+    .version-drawer { transition: none; }
+  }
+  .changelog :global(h1) { display: none; }
+  .changelog :global(h2) {
+    margin-top: 3rem;
+    margin-bottom: 1.25rem;
+    border-top: 1px solid var(--color-coal-4);
+    padding-top: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    color: var(--color-acid);
+    scroll-margin-top: calc(var(--changelog-header-height, 61px) + 4rem);
+  }
+  @media (min-width: 64rem) {
+    .version-trigger { display: none; }
+    .changelog :global(h2) { scroll-margin-top: calc(var(--changelog-header-height, 61px) + 2rem); }
+  }
+  .changelog :global(h3) { margin: 1.5rem 0 0.75rem; font-weight: 600; }
+  .changelog :global(p), .changelog :global(li) { color: var(--color-zinc-muted); line-height: 1.75; }
+  .changelog :global(ul) { list-style: disc; padding-left: 1.25rem; }
+  .changelog :global(li) { margin-bottom: 0.5rem; }
+  .changelog :global(code) { font-family: var(--font-mono); font-size: 0.875em; color: #e8e8e8; overflow-wrap: anywhere; }
+  .changelog :global(a) { color: var(--color-acid); text-decoration: underline; text-underline-offset: 3px; }
+</style>
+
+<script>
+  let cleanup = () => {};
+
+  const initVersions = () => {
+    cleanup();
+    const header = document.getElementById("changelog-header");
+    const links = document.getElementById("version-links");
+    const trigger = document.querySelector<HTMLButtonElement>("#version-trigger");
+    const drawer = document.querySelector<HTMLDialogElement>("#version-drawer");
+    if (!header || !links || !trigger || !drawer) return;
+
+    const controller = new AbortController();
+    const { signal } = controller;
+    const headings = Array.from(document.querySelectorAll<HTMLElement>(".changelog h2"));
+    const versionLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-version-link]"));
+    const currentVersion = trigger.querySelector<HTMLElement>("[data-current-version]");
+    let previousOverflow = document.body.style.overflow;
+    let selectedHeading: HTMLElement | null = null;
+
+    const update = () => {
+      const headerBottom = header.getBoundingClientRect().bottom;
+      document.documentElement.style.setProperty("--changelog-header-height", `${headerBottom}px`);
+      const desktop = window.matchMedia("(min-width: 64rem)").matches;
+      trigger.hidden = desktop || links.getBoundingClientRect().bottom > headerBottom;
+      if (desktop && drawer.open) drawer.close();
+      const threshold = headerBottom + trigger.getBoundingClientRect().height + 32;
+      let active = headings[0];
+      for (const heading of headings) {
+        if (heading.getBoundingClientRect().top <= threshold) active = heading;
+      }
+      if (currentVersion) currentVersion.textContent = active?.textContent ?? "";
+      for (const link of versionLinks) {
+        if (link.hash === `#${active?.id}`) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      }
+    };
+
+    trigger.addEventListener("click", () => {
+      selectedHeading = null;
+      previousOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      drawer.showModal();
+      trigger.setAttribute("aria-expanded", "true");
+    }, { signal });
+    drawer.addEventListener("close", () => {
+      document.body.style.overflow = previousOverflow;
+      trigger.setAttribute("aria-expanded", "false");
+      if (selectedHeading) {
+        selectedHeading.tabIndex = -1;
+        selectedHeading.focus({ preventScroll: true });
+        selectedHeading = null;
+      } else if (!trigger.hidden) {
+        trigger.focus({ preventScroll: true });
+      }
+    }, { signal });
+    drawer.querySelector("[data-close-versions]")?.addEventListener("click", () => drawer.close(), { signal });
+    drawer.addEventListener("click", (event) => {
+      if (event.target !== drawer) return;
+      const bounds = drawer.getBoundingClientRect();
+      if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) drawer.close();
+    }, { signal });
+    for (const link of versionLinks) link.addEventListener("click", () => {
+      if (drawer.open) {
+        selectedHeading = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+        drawer.close();
+      }
+    }, { signal });
+    window.addEventListener("scroll", update, { passive: true, signal });
+    const observer = new ResizeObserver(update);
+    observer.observe(header);
+    observer.observe(links);
+    update();
+
+    cleanup = () => {
+      if (drawer.open) {
+        drawer.close();
+        document.body.style.overflow = previousOverflow;
+      }
+      controller.abort();
+      observer.disconnect();
+      document.documentElement.style.removeProperty("--changelog-header-height");
+    };
+  };
+
+  document.addEventListener("astro:page-load", initVersions);
+  document.addEventListener("astro:before-swap", () => cleanup());
+</script>
