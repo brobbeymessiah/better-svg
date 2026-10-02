@@ -425,6 +425,12 @@ export function MyIcon() {
                     <td><code class="font-mono text-xs text-zinc-muted">—</code></td>
                     <td class="text-zinc-muted text-sm">Options passed to fetch().</td>
                   </tr>
+                  <tr data-fw-show="astro" class="hidden">
+                    <td><code class="font-mono text-xs text-acid">allowedOrigins</code></td>
+                    <td><code class="font-mono text-xs text-[#e8c97e]">readonly string[]</code></td>
+                    <td><code class="font-mono text-xs text-zinc-muted">same origin</code></td>
+                    <td class="text-zinc-muted text-sm">Trusted origins permitted for server fetches, such as <code class="inline-code">https://cdn.example.com</code>. Redirects are rejected.</td>
+                  </tr>
                   {frameworks.map((framework) => (
                     <>
                       {framework.id !== "astro" && <tr data-fw-show={framework.id} class:list={{ hidden: framework.id !== "react" }}>

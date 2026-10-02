@@ -129,6 +129,8 @@ export const toNodeFromElement = (element: Element | XmlElement): SvgNode => {
   for (let child = element.firstChild; child; child = child.nextSibling) {
     if (child.nodeType === 1) {
       children.push(toNodeFromElement(child as Element | XmlElement));
+    } else if (child.nodeType === 8) {
+      children.push({ tag: "#comment", attrs: [], children: [], text: child.nodeValue ?? "" });
     } else if (child.nodeType === 3 || child.nodeType === 4) {
       const text = child.nodeValue ?? "";
       if (text.length > 0) {
@@ -277,6 +279,7 @@ export const sanitizeNode = (node: SvgNode): SvgNode | null => {
 };
 
 export const renderNode = (node: SvgNode): string => {
+  if (node.tag === "#comment") return `<!--${node.text ?? ""}-->`;
   if (node.tag === "#text") {
     return encodeText(node.text ?? "");
   }

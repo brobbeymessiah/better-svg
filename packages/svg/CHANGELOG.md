@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.2
+
+### Security
+
+- Require trusted `allowedOrigins` for cross-origin Astro fetches and reject HTTP redirects during server rendering.
+
+### Fixed
+
+- Preserve caller cancellation in Astro and recognize SVGs with XML declarations, comments, or DOCTYPE prefixes.
+- Keep escaped CSS selectors, accessibility references, and root ID overrides connected to their SVG targets.
+- Preserve authored accessibility references when adding titles or descriptions, and scale viewBox-less artwork when setting dimensions or `size`.
+- Keep Svelte's exported parsed `style` as a CSS string, preserve trusted SVG comments, and accept legacy xlink attributes without namespace declarations.
+- Discover symlinked local SVG files and directories without following directory cycles.
+
 ## 0.6.1
 
 ### Changed

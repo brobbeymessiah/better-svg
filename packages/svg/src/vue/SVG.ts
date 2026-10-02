@@ -18,7 +18,7 @@ import {
 import { createSvgId, rewriteSvgAttributes, rewriteSvgValue, scopeParsedSvgIds } from "../core/ids";
 
 import type { ParsedInlineSvg } from "../core/sanitize";
-import { createSvgPresentation, svgDimensions } from "../core/presentation";
+import { createSvgPresentation, svgDimensions, svgViewBox } from "../core/presentation";
 
 type State = { status: "loading" } | { status: "error" } | { status: "ready"; content: ParsedSvg };
 
@@ -182,13 +182,8 @@ export const SVG = defineComponent({
       };
       if (props.width !== undefined) out.width = props.width;
       if (props.height !== undefined) out.height = props.height;
-      if (props.viewBox !== undefined) out.viewBox = props.viewBox;
-      else if (
-        !state.value.content.attrs.viewBox &&
-        (props.width !== undefined || props.height !== undefined)
-      ) {
-        out.viewBox = state.value.content.attrs.viewBox ?? "0 0 24 24";
-      }
+      const viewBox = svgViewBox(state.value.content.attrs, props);
+      if (viewBox !== undefined) out.viewBox = viewBox;
       if (props.fill !== undefined) out.fill = props.fill;
       if (props.stroke !== undefined) out.stroke = props.stroke;
       if (props.role !== undefined) out.role = props.role;

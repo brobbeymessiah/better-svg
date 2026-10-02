@@ -1,4 +1,4 @@
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, realpath, stat } from "node:fs/promises";
 import { resolve, relative, sep } from "node:path";
 import type { Plugin } from "vite";
 
@@ -23,8 +23,14 @@ export const localSvgs = (options: LocalSvgOptions = {}): Plugin => {
     );
   }
   let root = "";
+  const watchedDirectories = new Set<string>();
+  const watchedFiles = new Set<string>();
   const containsSvg = (file: string) =>
-    file.endsWith(".svg") && dirs.some((dir) => file.startsWith(`${resolve(root, dir)}${sep}`));
+    watchedFiles.has(file) ||
+    (file.endsWith(".svg") &&
+      [...dirs.map((dir) => resolve(root, dir)), ...watchedDirectories].some((dir) =>
+        file.startsWith(`${dir}${sep}`),
+      ));
 
   return {
     name: "@mhaadi/svg/local",
@@ -56,20 +62,38 @@ export const localSvgs = (options: LocalSvgOptions = {}): Plugin => {
       )
         return;
       const entries = new Map<string, string>();
-      const visit = async (directory: string, base: string) => {
+      watchedDirectories.clear();
+      watchedFiles.clear();
+      const visit = async (directory: string, base: string, ancestors = new Set<string>()) => {
         let files;
+        let target;
         try {
+          target = await realpath(directory);
+          if (ancestors.has(target)) return;
           files = await readdir(directory, { withFileTypes: true });
         } catch (cause) {
           if (cause instanceof Error && "code" in cause && cause.code === "ENOENT") return;
           throw cause;
         }
+        const nextAncestors = new Set(ancestors).add(target);
+        watchedDirectories.add(target);
+        this.addWatchFile(target);
         for (const file of files.sort((a, b) => a.name.localeCompare(b.name))) {
           const path = resolve(directory, file.name);
-          if (file.isDirectory()) await visit(path, base);
-          else if (file.isFile() && file.name.endsWith(".svg")) {
+          let info;
+          try {
+            info = file.isSymbolicLink() ? await stat(path) : file;
+          } catch (cause) {
+            if (cause instanceof Error && "code" in cause && cause.code === "ENOENT") continue;
+            throw cause;
+          }
+          if (info.isDirectory()) await visit(path, base, nextAncestors);
+          else if (info.isFile() && file.name.endsWith(".svg")) {
             const name = relative(base, path).split(sep).join("/").slice(0, -4);
             this.addWatchFile(path);
+            const target = await realpath(path);
+            watchedFiles.add(target);
+            this.addWatchFile(target);
             if (!entries.has(name)) entries.set(name, await readFile(path, "utf8"));
           }
         }

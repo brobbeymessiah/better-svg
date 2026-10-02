@@ -31,7 +31,7 @@ import logo from "../assets/svg/logo.svg?raw";
 
 <SVG src={logo} width={24} height={24} class="text-current" />`,
     details:
-      "Astro 5+ renders the SVG during the build or server request and ships no client JavaScript. Import local files with ?raw for static builds. Relative URLs resolve against Astro.url and require a running asset server. The fallback slot handles failures. There is no client loading state, and callbacks run on the server.",
+      "Astro 5+ renders the SVG during the build or server request and ships no client JavaScript. Import local files with ?raw for static builds. Relative URLs resolve against Astro.url and require a running asset server. Cross-origin URLs need a trusted allowedOrigins list, and redirects are rejected. The fallback slot handles failures. Callbacks run on the server.",
     states: `---
 import SVG, { registerLocalSvgs } from "@mhaadi/svg/astro";
 

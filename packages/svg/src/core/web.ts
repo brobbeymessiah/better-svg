@@ -62,7 +62,7 @@ export const createWebSvgController = () => {
   return { load, abort: () => current?.abort() };
 };
 
-import { svgDimensions, type SvgPresentation } from "./presentation";
+import { svgDimensions, svgViewBox, type SvgPresentation } from "./presentation";
 
 export type WebSvgAttributes = SvgPresentation & {
   width?: string | number;
@@ -89,9 +89,8 @@ export const mergeSvgAttributes = (content: ParsedInlineSvg, overrides: WebSvgAt
   }
   if (overrides["aria-label"] !== undefined && overrides["aria-labelledby"] === undefined)
     delete attrs["aria-labelledby"];
-  if (!attrs.viewBox && (overrides.width !== undefined || overrides.height !== undefined)) {
-    attrs.viewBox = "0 0 24 24";
-  }
+  const viewBox = svgViewBox(content.attrs, overrides);
+  if (viewBox !== undefined) attrs.viewBox = viewBox;
   attrs.class = [content.className, overrides.class].filter(Boolean).join(" ") || undefined;
   attrs.style = [content.styleText, overrides.style].filter(Boolean).join(";") || undefined;
   return rewriteSvgAttributes(attrs, content.ids);

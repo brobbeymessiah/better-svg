@@ -6,19 +6,31 @@ import type { ParsedInlineSvg } from "../core/sanitize";
 import type { WebSvgOptions } from "../core/web";
 import { createSvgId, scopeParsedSvgIds } from "../core/ids";
 
+export type AstroSvgOptions = WebSvgOptions & { allowedOrigins?: readonly string[] };
+
 export const loadAstroSvg = async (
-  options: WebSvgOptions,
+  options: AstroSvgOptions,
   baseUrl: URL,
 ): Promise<ParsedInlineSvg> => {
   let source = resolveSource(options.src, options.name);
   if (!source) throw new Error("Either name or src is required.");
   if (!isInlineSvg(source.trim()) && !decodeDataUrl(source.trim())) {
-    source = new URL(source, baseUrl).href;
+    const destination = new URL(source, baseUrl);
+    if (!["http:", "https:"].includes(destination.protocol))
+      throw new Error("SVG URLs must use HTTP or HTTPS.");
+    if (
+      destination.origin !== baseUrl.origin &&
+      !options.allowedOrigins?.includes(destination.origin)
+    ) {
+      throw new Error(`SVG origin is not allowed: ${destination.origin}`);
+    }
+    source = destination.href;
   }
   const markup = await resolveMarkup(source, {
-    signal: new AbortController().signal,
+    signal: options.fetchOptions?.signal ?? new AbortController().signal,
     fetchOptions: options.fetchOptions,
     cache: options.cache ?? true,
+    redirect: "error",
   });
   const content = ensureParsedSvg(
     source,

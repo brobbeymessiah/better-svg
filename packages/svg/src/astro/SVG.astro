@@ -1,24 +1,25 @@
 ---
 import type { HTMLAttributes } from "astro/types";
-import { mergeSvgAttributes, type WebSvgOptions } from "../core/web";
-import { loadAstroSvg } from "./runtime";
+import { mergeSvgAttributes } from "../core/web";
+import { loadAstroSvg, type AstroSvgOptions } from "./runtime";
+import { withSvgRootId } from "../core/ids";
 export { registerLocalSvgs } from "../core/local";
 
 import { createSvgPresentation, type SvgPresentation } from "../core/presentation";
 
-export interface Props extends Omit<HTMLAttributes<"svg">, "style">, WebSvgOptions, SvgPresentation {
+export interface Props extends Omit<HTMLAttributes<"svg">, "style">, AstroSvgOptions, SvgPresentation {
   style?: string;
 }
 
-const { size, title, desc, src, name, fetchOptions, cache = true, sanitize = true, uniqueIds = true, onSvgLoad, onSvgError, ...attributes } = Astro.props;
+const { size, title, desc, src, name, fetchOptions, allowedOrigins, cache = true, sanitize = true, uniqueIds = true, onSvgLoad, onSvgError, ...attributes } = Astro.props;
 let content;
 try {
-  content = await loadAstroSvg({ src, name, fetchOptions, cache, sanitize, uniqueIds, onSvgLoad }, Astro.url);
+  content = await loadAstroSvg({ src, name, fetchOptions, allowedOrigins, cache, sanitize, uniqueIds, onSvgLoad }, Astro.url);
 } catch (cause) {
   const error = cause instanceof Error ? cause : new Error("Failed to load SVG.");
   onSvgError?.(error);
 }
-if (content) content = createSvgPresentation()(content, { title, desc });
+if (content) content = createSvgPresentation()(withSvgRootId(content, attributes.id), { title, desc });
 const attrs = content ? { ...attributes, ...mergeSvgAttributes(content, { ...attributes, size }) } : {};
 ---
 

@@ -3,6 +3,32 @@ import { inlineSvgFromNode, type ParsedInlineSvg } from "./sanitize";
 
 let nextId = 0;
 const instanceKey = Math.random().toString(36).slice(2);
+const rootOverrides = new WeakMap<ParsedInlineSvg, { id: string; content: ParsedInlineSvg }>();
+
+const decodeCssId = (value: string) =>
+  value.replace(
+    /\\([\da-f]{1,6})(?:\r\n|[\t\n\f\r ])?|\\([^\n\r\f])/gi,
+    (_match, hex: string | undefined, character: string | undefined) => {
+      if (!hex) return character ?? "";
+      const point = Number.parseInt(hex, 16);
+      return point > 0 && point <= 0x10ffff && !(point >= 0xd800 && point <= 0xdfff)
+        ? String.fromCodePoint(point)
+        : "\ufffd";
+    },
+  );
+
+const escapeCssId = (value: string) =>
+  Array.from(value)
+    .map((character, index) => {
+      if (
+        /[\da-z_-]/i.test(character) &&
+        !(index === 0 && /\d/.test(character)) &&
+        !(index === 1 && value[0] === "-" && /\d/.test(character))
+      )
+        return character;
+      return `\\${character.codePointAt(0)?.toString(16)} `;
+    })
+    .join("");
 
 export const createSvgId = () => `svg-${instanceKey}-${++nextId}`;
 
@@ -19,6 +45,8 @@ export const rewriteSvgValue = (name: string, value: string, ids: ReadonlyMap<st
       "aria-owns",
       "aria-flowto",
       "aria-activedescendant",
+      "aria-details",
+      "aria-errormessage",
     ].includes(lower)
   ) {
     return value.replace(/\S+/g, (id) => ids.get(id) ?? id);
@@ -36,10 +64,12 @@ export const rewriteSvgValue = (name: string, value: string, ids: ReadonlyMap<st
       .join(";");
   }
   return value.replace(
-    /url\(\s*(['"]?)#([^\s'"()]+)\1\s*\)/gi,
+    /url\(\s*(['"]?)#((?:\\[\da-f]{1,6}\s?|\\.|[^\s'"()\\])+)\1\s*\)/gi,
     (match, quote: string, id: string) => {
-      const replacement = ids.get(id);
-      return replacement ? `url(${quote}#${replacement}${quote})` : match;
+      const replacement = ids.get(decodeCssId(id));
+      return replacement !== undefined
+        ? `url(${quote}#${escapeCssId(replacement)}${quote})`
+        : match;
     },
   );
 };
@@ -49,14 +79,29 @@ const rewriteStylesheet = (css: string, ids: ReadonlyMap<string, string>) => {
   return rewritten.replace(/([^{}]+)(?=\{)/g, (selector: string) => {
     if (selector.trimStart().startsWith("@")) return selector;
     return selector.replace(
-      /\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|#([\w-]+)/g,
+      /\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|#((?:\\[\da-f]{1,6}\s?|\\.|[\w-]|\P{ASCII})+)/giu,
       (match, id: string | undefined) => {
         if (!id) return match;
-        return ids.has(id) ? `#${ids.get(id)}` : match;
+        const replacement = ids.get(decodeCssId(id));
+        return replacement !== undefined ? `#${escapeCssId(replacement)}` : match;
       },
     );
   });
 };
+
+const rewriteNodeIds = (node: SvgNode, ids: ReadonlyMap<string, string>): SvgNode => ({
+  ...node,
+  attrs: node.attrs.map(({ name, value }) => ({
+    name,
+    value:
+      name.toLowerCase() === "id" ? (ids.get(value) ?? value) : rewriteSvgValue(name, value, ids),
+  })),
+  children: node.children.map((child) =>
+    node.tag.toLowerCase() === "style" && child.tag === "#text"
+      ? { ...child, text: rewriteStylesheet(child.text ?? "", ids) }
+      : rewriteNodeIds(child, ids),
+  ),
+});
 
 export const scopeSvgNodeIds = (root: SvgNode, prefix: string) => {
   const ids = new Map<string, string>();
@@ -71,20 +116,27 @@ export const scopeSvgNodeIds = (root: SvgNode, prefix: string) => {
   collect(root);
   if (!ids.size) return { node: root, ids };
 
-  const rewrite = (node: SvgNode): SvgNode => ({
-    ...node,
-    attrs: node.attrs.map(({ name, value }) => ({
-      name,
-      value:
-        name.toLowerCase() === "id" ? (ids.get(value) ?? value) : rewriteSvgValue(name, value, ids),
-    })),
-    children: node.children.map((child) =>
-      node.tag.toLowerCase() === "style" && child.tag === "#text"
-        ? { ...child, text: rewriteStylesheet(child.text ?? "", ids) }
-        : rewrite(child),
-    ),
-  });
-  return { node: rewrite(root), ids };
+  return { node: rewriteNodeIds(root, ids), ids };
+};
+
+export const withSvgRootId = (
+  content: ParsedInlineSvg,
+  id: string | undefined,
+): ParsedInlineSvg => {
+  const previousId = content.node.attrs.find((attr) => attr.name.toLowerCase() === "id")?.value;
+  if (id === undefined || previousId === undefined || id === previousId) return content;
+  const cached = rootOverrides.get(content);
+  if (cached?.id === id) return cached.content;
+  const parsed = inlineSvgFromNode(rewriteNodeIds(content.node, new Map([[previousId, id]])));
+  if (content.ids)
+    parsed.ids = new Map(
+      Array.from(content.ids, ([original, scoped]) => [
+        original,
+        scoped === previousId ? id : scoped,
+      ]),
+    );
+  rootOverrides.set(content, { id, content: parsed });
+  return parsed;
 };
 
 export const scopeParsedSvgIds = (content: ParsedInlineSvg, prefix: string): ParsedInlineSvg => {

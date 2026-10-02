@@ -22,9 +22,28 @@ export const svgDimensions = ({
   return dimensions;
 };
 
-type SvgContent = ParsedInlineSvg;
+export const svgViewBox = (
+  attrs: Record<string, string>,
+  {
+    size,
+    width,
+    height,
+    viewBox,
+  }: SvgPresentation & { width?: string | number; height?: string | number; viewBox?: string },
+) => {
+  if (viewBox !== undefined) return viewBox;
+  if (attrs.viewBox) return attrs.viewBox;
+  if (size === undefined && width === undefined && height === undefined) return;
+  const dimension = (value: string | undefined) => {
+    const number = Number(value?.trim().replace(/px$/i, ""));
+    return Number.isFinite(number) && number > 0 ? number : 24;
+  };
+  return `0 0 ${dimension(attrs.width)} ${dimension(attrs.height)}`;
+};
 
-export const createSvgPresentation = () => {
+type SvgContent<Style> = ParsedInlineSvg<Style>;
+
+export const createSvgPresentation = <Style = Record<string, string>>() => {
   const prefix = createSvgId();
   const rendered = new WeakMap<SvgNode, string>();
   const renderChild = (node: SvgNode) => {
@@ -36,10 +55,10 @@ export const createSvgPresentation = () => {
     return markup;
   };
   let previous:
-    | { content: SvgContent; title?: string; desc?: string; result: SvgContent }
+    | { content: SvgContent<Style>; title?: string; desc?: string; result: SvgContent<Style> }
     | undefined;
 
-  return (content: SvgContent, { title, desc }: SvgPresentation): SvgContent => {
+  return (content: SvgContent<Style>, { title, desc }: SvgPresentation): SvgContent<Style> => {
     if (title === undefined && desc === undefined) return content;
     if (previous?.content === content && previous.title === title && previous.desc === desc)
       return previous.result;
@@ -62,12 +81,12 @@ export const createSvgPresentation = () => {
       };
       children = children.filter((child) => child.tag.toLowerCase() !== tag);
       children.unshift(label);
-      if (tag === "title" && !attrs["aria-label"]) attrs["aria-labelledby"] = id;
-      if (tag === "desc") attrs["aria-describedby"] = id;
+      if (tag === "title" && attrs["aria-label"] === undefined) attrs["aria-labelledby"] ??= id;
+      if (tag === "desc") attrs["aria-describedby"] ??= id;
     }
     if (title) attrs.role ??= "img";
     let innerHTML: string | undefined;
-    const result: SvgContent = {
+    const result: SvgContent<Style> = {
       className: content.className,
       style: content.style,
       styleText: content.styleText,

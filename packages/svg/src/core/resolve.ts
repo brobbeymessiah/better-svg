@@ -8,6 +8,7 @@ export type ResolveOptions = {
   fetchOptions?: RequestInit;
   signal: AbortSignal;
   cache: boolean;
+  redirect?: RequestRedirect;
 };
 
 export const resolveMarkup = async (source: string, options: ResolveOptions): Promise<string> => {
@@ -38,6 +39,7 @@ export const resolveMarkup = async (source: string, options: ResolveOptions): Pr
       ...options.fetchOptions,
       headers,
       signal: options.signal,
+      redirect: options.redirect ?? options.fetchOptions?.redirect,
     });
 
     if (!response.ok) {
