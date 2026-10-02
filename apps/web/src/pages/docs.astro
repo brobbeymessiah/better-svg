@@ -6,6 +6,15 @@ import { frameworks } from "../data/frameworks";
 import svgPkg from "../../../../packages/svg/package.json";
 
 const version = svgPkg.version;
+const stateTypes: Record<string, string> = {
+  react: "ReactNode",
+  "react-native": "ReactNode",
+  vue: "slot",
+  svelte: "Snippet",
+  solid: "JSX.Element",
+  astro: "slot",
+  angular: "TemplateRef<unknown>",
+};
 
 const sections = [
   { id: "overview", label: "Overview" },
@@ -155,8 +164,7 @@ import PmTabs from "../components/PmTabs.astro";
             <h1 class="font-display text-6xl tracking-wider text-[#e8e8e8] leading-none mb-4">DOCS</h1>
             <p class="text-zinc-muted max-w-xl leading-relaxed">
               Complete reference for the <code class="rounded-none bg-coal-2 px-1.5 py-0.5 font-mono text-xs text-[#e8e8e8]">{"<SVG>"}</code> component.
-              Resolves, sanitizes, and renders SVGs inline — from any source, in
-              React, React Native, Vue, Svelte, Solid, Astro, or Angular.
+              Resolves, sanitizes, and renders SVGs inline from local files, markup, data URLs, or remote URLs.
             </p>
           </div>
 
@@ -164,14 +172,9 @@ import PmTabs from "../components/PmTabs.astro";
           <section id="overview" class="mb-16">
             <h2 class="docs-heading">Overview</h2>
             <p class="docs-body">
-              <code class="inline-code">@mhaadi/svg</code> exposes a single component —{" "}
-              <code class="inline-code">{"<SVG>"}</code> — that resolves SVG content from any source,
-              sanitizes unsafe markup, and renders it inline. On the web (React, Vue, Svelte, Solid, Astro, Angular) it renders a
-              real <code class="inline-code">{"<svg>"}</code> DOM element; React Native renders a
-              react-native-svg tree. Available for
-              <strong class="text-[#e8e8e8]"> React, React Native, Vue, Svelte, Solid, Astro, Angular</strong> via subpath exports
-              on a single npm package. No{" "}
-              <code class="inline-code">{"<img>"}</code> wrappers on the web adapters.
+              <code class="inline-code">@mhaadi/svg</code> resolves SVG content, sanitizes unsafe markup, and renders it inline.
+              <span data-fw-show="react vue svelte solid astro angular"> It renders a real <code class="inline-code">{"<svg>"}</code> DOM element.</span>
+              <span data-fw-show="react-native" class="hidden"> It renders a <code class="inline-code">react-native-svg</code> tree.</span>
             </p>
 
             <div class="mt-6 grid sm:grid-cols-4 gap-4">
@@ -179,7 +182,7 @@ import PmTabs from "../components/PmTabs.astro";
                 { label: "Shared SVG core" },
                 { label: "TypeScript-first" },
                 { label: "Sanitized by default" },
-                { label: "8 frameworks" },
+                { label: `${frameworks.length} frameworks` },
               ].map((badge) => (
                 <div class="flex items-center gap-2 rounded-none border border-coal-4 bg-coal-1 px-4 py-3">
                   <span class="text-acid text-xs">⬡</span>
@@ -197,7 +200,7 @@ import PmTabs from "../components/PmTabs.astro";
             <div class="mt-6 space-y-6">
               <!-- React / RN / Vue / Svelte (one package) -->
               <div data-fw-show="react react-native vue svelte solid astro angular">
-                <p class="mb-3 text-sm text-[#e8e8e8] font-semibold">JS/TS — React, React Native, Vue, Svelte, Solid, Astro, Angular</p>
+                <p class="mb-3 text-sm text-[#e8e8e8] font-semibold">Install the package</p>
                 <PmTabs
                   commands={[
                     { pm: "pnpm", cmd: "pnpm add @mhaadi/svg" },
@@ -353,7 +356,7 @@ export function MyIcon() {
           <section id="props" class="mb-16">
             <h2 class="docs-heading">Props</h2>
             <p class="docs-body">
-              Source, sanitization, and cache options are shared across adapters. Astro has a fallback slot and no client loading state. Angular uses template inputs and svgLoad/svgError outputs. Framework-specific extras are
+              Source, sanitization, and cache options control how SVGs load and render. Framework-specific extras are
               documented in the <a href="#framework-specifics" class="text-acid hover:underline">Framework Specifics</a> section.
             </p>
 
@@ -390,13 +393,13 @@ export function MyIcon() {
                     <td><code class="font-mono text-xs text-acid">title</code></td>
                     <td><code class="font-mono text-xs text-[#e8c97e]">string</code></td>
                     <td><code class="font-mono text-xs text-zinc-muted">unset</code></td>
-                    <td class="text-zinc-muted text-sm">Accessible title text. Web adapters render a title element. React Native sets the accessibility label.</td>
+                    <td class="text-zinc-muted text-sm">Accessible title text. <span data-fw-show="react vue svelte solid astro angular">Renders a title element.</span><span data-fw-show="react-native" class="hidden">Sets the accessibility label.</span></td>
                   </tr>
                   <tr>
                     <td><code class="font-mono text-xs text-acid">desc</code></td>
                     <td><code class="font-mono text-xs text-[#e8c97e]">string</code></td>
                     <td><code class="font-mono text-xs text-zinc-muted">unset</code></td>
-                    <td class="text-zinc-muted text-sm">Accessible description text. Web adapters render a desc element. React Native sets the accessibility hint.</td>
+                    <td class="text-zinc-muted text-sm">Accessible description text. <span data-fw-show="react vue svelte solid astro angular">Renders a desc element.</span><span data-fw-show="react-native" class="hidden">Sets the accessibility hint.</span></td>
                   </tr>
                   <tr>
                     <td><code class="font-mono text-xs text-acid">sanitize</code></td>
@@ -420,31 +423,47 @@ export function MyIcon() {
                     <td><code class="font-mono text-xs text-acid">fetchOptions</code></td>
                     <td><code class="font-mono text-xs text-[#e8c97e]">RequestInit</code></td>
                     <td><code class="font-mono text-xs text-zinc-muted">—</code></td>
-                    <td class="text-zinc-muted text-sm">Options passed to fetch(). Memoize to avoid re-fetching.</td>
+                    <td class="text-zinc-muted text-sm">Options passed to fetch().</td>
                   </tr>
-                  <tr>
-                    <td><code class="font-mono text-xs text-acid">loading</code></td>
-                    <td><code class="font-mono text-xs text-[#e8c97e]">slot / ReactNode / snippet</code></td>
-                    <td><code class="font-mono text-xs text-zinc-muted">—</code></td>
-                    <td class="text-zinc-muted text-sm">Rendered while fetching or parsing SVG. Slots in Vue, snippets in Svelte, JSX in Solid, templates in Angular. Astro resolves on the server.</td>
-                  </tr>
-                  <tr>
-                    <td><code class="font-mono text-xs text-acid">fallback</code></td>
-                    <td><code class="font-mono text-xs text-[#e8c97e]">slot / ReactNode / snippet</code></td>
-                    <td><code class="font-mono text-xs text-zinc-muted">—</code></td>
-                    <td class="text-zinc-muted text-sm">Rendered when loading or parsing fails.</td>
-                  </tr>
-                  <tr>
+                  {frameworks.map((framework) => (
+                    <>
+                      {framework.id !== "astro" && <tr data-fw-show={framework.id} class:list={{ hidden: framework.id !== "react" }}>
+                        <td><code class="font-mono text-xs text-acid">loading</code></td>
+                        <td><code class="font-mono text-xs text-[#e8c97e]">{stateTypes[framework.id]}</code></td>
+                        <td><code class="font-mono text-xs text-zinc-muted">—</code></td>
+                        <td class="text-zinc-muted text-sm">Rendered while fetching or parsing SVG.</td>
+                      </tr>}
+                      <tr data-fw-show={framework.id} class:list={{ hidden: framework.id !== "react" }}>
+                        <td><code class="font-mono text-xs text-acid">fallback</code></td>
+                        <td><code class="font-mono text-xs text-[#e8c97e]">{stateTypes[framework.id]}</code></td>
+                        <td><code class="font-mono text-xs text-zinc-muted">—</code></td>
+                        <td class="text-zinc-muted text-sm">Rendered when loading or parsing fails.</td>
+                      </tr>
+                    </>
+                  ))}
+                  <tr data-fw-show="react react-native vue svelte solid astro">
                     <td><code class="font-mono text-xs text-acid">onSvgLoad</code></td>
                     <td><code class="font-mono text-xs text-[#e8c97e]">(markup: string) =&gt; void</code></td>
                     <td><code class="font-mono text-xs text-zinc-muted">—</code></td>
-                    <td class="text-zinc-muted text-sm">Called after markup is successfully resolved.</td>
+                    <td class="text-zinc-muted text-sm">Called after markup is successfully resolved.<span data-fw-show="astro" class="hidden"> Runs on the server.</span></td>
                   </tr>
-                  <tr>
+                  <tr data-fw-show="react react-native vue svelte solid astro">
                     <td><code class="font-mono text-xs text-acid">onSvgError</code></td>
                     <td><code class="font-mono text-xs text-[#e8c97e]">(error) =&gt; void</code></td>
                     <td><code class="font-mono text-xs text-zinc-muted">—</code></td>
-                    <td class="text-zinc-muted text-sm">Called when loading or parsing fails. Receives an <code class="inline-code">Error</code>.</td>
+                    <td class="text-zinc-muted text-sm">Called when loading or parsing fails. Receives an <code class="inline-code">Error</code>.<span data-fw-show="astro" class="hidden"> Runs on the server.</span></td>
+                  </tr>
+                  <tr data-fw-show="angular" class="hidden">
+                    <td><code class="font-mono text-xs text-acid">svgLoad</code></td>
+                    <td><code class="font-mono text-xs text-[#e8c97e]">output&lt;string&gt;</code></td>
+                    <td><code class="font-mono text-xs text-zinc-muted">—</code></td>
+                    <td class="text-zinc-muted text-sm">Emits the resolved SVG markup.</td>
+                  </tr>
+                  <tr data-fw-show="angular" class="hidden">
+                    <td><code class="font-mono text-xs text-acid">svgError</code></td>
+                    <td><code class="font-mono text-xs text-[#e8c97e]">output&lt;Error&gt;</code></td>
+                    <td><code class="font-mono text-xs text-zinc-muted">—</code></td>
+                    <td class="text-zinc-muted text-sm">Emits an Error when loading or parsing fails.</td>
                   </tr>
                 </tbody>
               </table>
@@ -594,7 +613,11 @@ const icons: SvgName[] = ["logo", "arrow"];`} lang="tsx" />
                       No path or URL needed. Provide a filename without extension.
                     </p>
                     <ul class="text-sm text-zinc-muted space-y-1 list-disc pl-5">
-                      <li>Vite with <code class="inline-code">@mhaadi/svg/vite/plugin</code>, or Astro with <code class="inline-code">@mhaadi/svg/astro/integration</code>: discovers <code class="inline-code">src/assets/svg/</code> or <code class="inline-code">app/assets/svg/</code>. Configure <code class="inline-code">dirs</code> for other folders. Nested files use names such as <code class="inline-code">social/github</code>. Missing names are fetched from <code class="inline-code">/assets/svg/{"{name}"}.svg</code>.</li>
+                      <li data-fw-show="astro" class="hidden">Add <code class="inline-code">@mhaadi/svg/astro/integration</code> to your integrations to discover local SVGs at build time.</li>
+                      <li data-fw-show="react vue svelte solid angular">Vite projects can add <code class="inline-code">@mhaadi/svg/vite/plugin</code> to discover local SVGs at build time.</li>
+                      <li data-fw-show="react-native" class="hidden">Register local SVG strings with <code class="inline-code">registerLocalSvgs</code> from <code class="inline-code">@mhaadi/svg/local</code>.</li>
+                      <li data-fw-show="react vue svelte solid astro angular">Discovery checks <code class="inline-code">src/assets/svg/</code> then <code class="inline-code">app/assets/svg/</code>. Configure <code class="inline-code">dirs</code> for other folders. Nested files use names such as <code class="inline-code">social/github</code>.</li>
+                      <li>Missing names are fetched from <code class="inline-code">/assets/svg/{"{name}"}.svg</code>.</li>
                     </ul>
                   </div>
                 </div>
@@ -643,7 +666,7 @@ const icons: SvgName[] = ["logo", "arrow"];`} lang="tsx" />
             <h2 class="docs-heading">Edge Cases</h2>
 
             <div class="mt-4 space-y-6">
-              <div>
+              <div data-fw-show="react">
                 <h3 class="mb-2 font-semibold text-[#e8e8e8]">Server-side rendering (React)</h3>
                 <p class="mb-3 text-sm text-zinc-muted leading-relaxed">
                   DOM parsing is unavailable on the server. Use the <code class="inline-code">loading</code> prop to render a placeholder during SSR — otherwise the component renders nothing on the first pass.
@@ -654,22 +677,32 @@ const icons: SvgName[] = ["logo", "arrow"];`} lang="tsx" />
 />`} lang="tsx" />
               </div>
 
-              <div>
+              <div data-fw-show="vue svelte solid angular" class="hidden">
+                <h3 class="mb-2 font-semibold text-[#e8e8e8]">Server-side rendering</h3>
+                <p class="text-sm text-zinc-muted leading-relaxed">SVG parsing runs on the client. The server renders your loading content, or nothing if you omit it. The SVG appears after the component mounts in the browser.</p>
+              </div>
+
+              <div data-fw-show="astro" class="hidden">
+                <h3 class="mb-2 font-semibold text-[#e8e8e8]">Build and server rendering</h3>
+                <p class="text-sm text-zinc-muted leading-relaxed">SVGs resolve during the build or server request. Use local discovery or import SVG files with <code class="inline-code">?raw</code> for static builds. Relative URLs resolve against <code class="inline-code">Astro.url</code> and need a running asset server. Failures render the fallback slot.</p>
+              </div>
+
+              <div data-fw-show="react vue svelte solid angular">
                 <h3 class="mb-2 font-semibold text-[#e8e8e8]">Remote SVGs & CORS</h3>
                 <p class="mb-3 text-sm text-zinc-muted leading-relaxed">
                   Remote SVGs require the server to send appropriate CORS headers. Use <code class="inline-code">fetchOptions</code> to pass credentials or custom headers.
                 </p>
-                                <CodeBlock code={`<SVG
+                <div data-fw-show="react"><CodeBlock code={`<SVG
   src="https://api.example.com/icon.svg"
   fetchOptions={useMemo(() => ({
     headers: { Authorization: "Bearer token" },
     credentials: "include",
   }), [])}
-/>`} lang="tsx" />
+/>`} lang="tsx" /></div>
               </div>
 
-              <div>
-                <h3 class="mb-2 font-semibold text-[#e8e8e8]">Memoize fetchOptions (React/Vue/Svelte)</h3>
+              <div data-fw-show="react react-native">
+                <h3 class="mb-2 font-semibold text-[#e8e8e8]">Memoize fetchOptions</h3>
                 <p class="mb-3 text-sm text-zinc-muted leading-relaxed">
                   <code class="inline-code">fetchOptions</code> should be stable across renders — memoize it to prevent unnecessary re-fetches.
                 </p>
@@ -680,15 +713,21 @@ const icons: SvgName[] = ["logo", "arrow"];`} lang="tsx" />
 <SVG src={url} fetchOptions={opts} />`} lang="tsx" />
               </div>
 
+              <div data-fw-show="vue svelte solid angular" class="hidden">
+                <h3 class="mb-2 font-semibold text-[#e8e8e8]">Keep fetchOptions stable</h3>
+                <p class="text-sm text-zinc-muted leading-relaxed">Create your options object once and reuse it. Passing a new object on each update can trigger another fetch.</p>
+              </div>
+
               <div>
                 <h3 class="mb-2 font-semibold text-[#e8e8e8]">name prop fallback chain</h3>
                 <p class="mb-3 text-sm text-zinc-muted leading-relaxed">
-                  If the named SVG is not found in <code class="inline-code">src/assets/svg/</code>,{" "}
-                  <code class="inline-code">app/assets/svg/</code>, or <code class="inline-code">public/assets/svg/</code>, it
-                  falls back to <code class="inline-code">/assets/svg/{"{name}"}.svg</code> in public.
+                  Registered local SVGs resolve first. If a name isn't registered, the component fetches <code class="inline-code">/assets/svg/{"{name}"}.svg</code>.
                 </p>
-                                <CodeBlock code={`// Searches src/app/public/assets/svg, then:
-<SVG name="logo" />`} lang="tsx" />
+                <div data-fw-show="react react-native solid"><CodeBlock code={`<SVG name="logo" />`} lang="tsx" /></div>
+                <div data-fw-show="vue" class="hidden"><CodeBlock code={`<SVG name="logo" />`} lang="vue" /></div>
+                <div data-fw-show="svelte" class="hidden"><CodeBlock code={`<SVG name="logo" />`} lang="svelte" /></div>
+                <div data-fw-show="astro" class="hidden"><CodeBlock code={`<SVG name="logo" />`} lang="astro" /></div>
+                <div data-fw-show="angular" class="hidden"><CodeBlock code={`<better-svg name="logo" />`} lang="html" /></div>
               </div>
 
 
@@ -738,7 +777,7 @@ export function IconButton({ label }) {
                   <span class="h-1 w-4 bg-acid rounded-none"></span>
                   <h3 class="font-semibold text-[#e8e8e8]">Icon button with currentColor — React Native</h3>
                 </div>
-                                <CodeBlock code={`import { TouchableOpacity, "}Text  } from "react-native";
+                                <CodeBlock code={`import { TouchableOpacity, Text } from "react-native";
 import { SVG } from "@mhaadi/svg/react-native";
 
 export function IconButton({ label }) {
@@ -761,7 +800,7 @@ export function IconButton({ label }) {
               <div data-fw-show="vue svelte" class="hidden">
                 <div class="mb-3 flex items-center gap-2">
                   <span class="h-1 w-4 bg-acid rounded-none"></span>
-                  <h3 class="font-semibold text-[#e8e8e8]">Icon button with currentColor — Vue / Svelte</h3>
+                  <h3 class="font-semibold text-[#e8e8e8]">Icon button with currentColor</h3>
                 </div>
                 <div data-fw-show="vue">
                                   <CodeBlock code={`<script setup lang="ts">
@@ -827,7 +866,7 @@ export function RemoteIcon({ url }) {
                   <span class="h-1 w-4 bg-acid rounded-none"></span>
                   <h3 class="font-semibold text-[#e8e8e8]">Remote SVG with skeleton loading — React Native</h3>
                 </div>
-                                <CodeBlock code={`import { View  } from "react-native";
+                                <CodeBlock code={`import { View } from "react-native";
 import { SVG } from "@mhaadi/svg/react-native";
 
 const Skeleton = () =>
