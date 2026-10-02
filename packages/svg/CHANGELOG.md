@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0
+
+### Added
+
+- Discover local SVGs by name with configurable directories through `@mhaadi/svg/vite/plugin` and `@mhaadi/svg/astro/integration`. Local files render without a fetch, and development reloads when files change.
+
+### Fixed
+
+- Preserve the legacy Vite registration import during tree shaking and register raw SVG markup instead of asset URLs.
+
 ## 0.4.0
 
 ### Fixed

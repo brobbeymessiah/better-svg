@@ -212,17 +212,19 @@ for SVGs that depend on the current session or need fresh responses.
 
 ## Entry points
 
-| Import                     | Framework        |
-| -------------------------- | ---------------- |
-| `@mhaadi/svg`              | React (default)  |
-| `@mhaadi/svg/react`        | React 18+        |
-| `@mhaadi/svg/react-native` | React Native     |
-| `@mhaadi/svg/vue`          | Vue 3            |
-| `@mhaadi/svg/svelte`       | Svelte 5 (runes) |
-| `@mhaadi/svg/solid`        | Solid 1.9+       |
-| `@mhaadi/svg/astro`        | Astro 5+         |
-| `@mhaadi/svg/angular`      | Angular 20+      |
-| `@mhaadi/svg/vite`         | Vite plugin      |
+| Import                          | Framework             |
+| ------------------------------- | --------------------- |
+| `@mhaadi/svg`                   | React (default)       |
+| `@mhaadi/svg/react`             | React 18+             |
+| `@mhaadi/svg/react-native`      | React Native          |
+| `@mhaadi/svg/vue`               | Vue 3                 |
+| `@mhaadi/svg/svelte`            | Svelte 5 (runes)      |
+| `@mhaadi/svg/solid`             | Solid 1.9+            |
+| `@mhaadi/svg/astro`             | Astro 5+              |
+| `@mhaadi/svg/angular`           | Angular 20+           |
+| `@mhaadi/svg/vite`              | Vite registration     |
+| `@mhaadi/svg/vite/plugin`       | Vite 5+ config plugin |
+| `@mhaadi/svg/astro/integration` | Astro local discovery |
 
 React Native requires `react-native` and `react-native-svg` as peer dependencies.
 
@@ -254,3 +256,40 @@ Details: https://svg.mhaadi.dev/docs#security
 ## License
 
 MIT. See [`LICENSE`](./LICENSE).
+
+## Automatic local discovery
+
+Add the Vite plugin to discover files in `src/assets/svg` and `app/assets/svg`.
+Then `<SVG name="logo" />` renders `logo.svg` without fetching it. A nested
+file such as `social/github.svg` uses `name="social/github"`.
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import localSvgs from "@mhaadi/svg/vite/plugin";
+
+export default defineConfig({
+  plugins: [localSvgs({ dirs: ["src/icons", "src/illustrations"] })],
+});
+```
+
+Astro users can add the integration instead.
+
+```ts
+// astro.config.mjs
+import { defineConfig } from "astro/config";
+import svg from "@mhaadi/svg/astro/integration";
+
+export default defineConfig({ integrations: [svg()] });
+```
+
+`dirs` replaces the default directories. Paths are relative to the project
+root. The first directory wins when names overlap. Explicit calls to
+`registerLocalSvgs` from `@mhaadi/svg/local` override discovered entries. A missing name still falls
+back to `/assets/svg/{name}.svg`.
+
+Discovery includes every SVG in the configured directories in the bundle.
+Keep those directories limited to assets the app uses. Development reloads
+the page when an SVG is added, edited, or removed. No optimization runs.
+The existing `import "@mhaadi/svg/vite"` registration remains available for
+default directories, but the config plugin handles custom paths and Astro SSR.

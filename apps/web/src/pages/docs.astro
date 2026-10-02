@@ -661,7 +661,7 @@ Svg(
                       No path or URL needed. Provide a filename without extension.
                     </p>
                     <ul class="text-sm text-zinc-muted space-y-1 list-disc pl-5">
-                      <li>JS — Vite/CRA/Next: resolved at build time from <code class="inline-code">src/assets/svg/</code> or <code class="inline-code">app/assets/svg/</code>, else fetched from <code class="inline-code">/assets/svg/{"{name}"}.svg</code>.</li>
+                      <li>Vite with <code class="inline-code">@mhaadi/svg/vite/plugin</code>, or Astro with <code class="inline-code">@mhaadi/svg/astro/integration</code>: discovers <code class="inline-code">src/assets/svg/</code> or <code class="inline-code">app/assets/svg/</code>. Configure <code class="inline-code">dirs</code> for other folders. Nested files use names such as <code class="inline-code">social/github</code>. Missing names are fetched from <code class="inline-code">/assets/svg/{"{name}"}.svg</code>.</li>
                       <li>Flutter: resolved at runtime via the <code class="inline-code">localResolver</code> callback, else defaults to <code class="inline-code">assets/svg/{"{name}"}.svg</code>.</li>
                     </ul>
                   </div>
