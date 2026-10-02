@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.5
+
+### Fixed
+
+- Keep authored Vue root CSS and caller references connected when a caller overrides the SVG ID, including with `uniqueIds={false}`.
+
 ## 0.6.4
 
 ### Fixed

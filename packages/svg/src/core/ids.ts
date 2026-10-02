@@ -135,6 +135,7 @@ export const withSvgRootId = (
         scoped === previousId ? id : scoped,
       ]),
     );
+  else parsed.ids = new Map([[previousId, id]]);
   rootOverrides.set(content, { id, content: parsed });
   return parsed;
 };

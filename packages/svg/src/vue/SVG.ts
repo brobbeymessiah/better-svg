@@ -175,7 +175,7 @@ export const SVG = defineComponent({
     const mergedStyle = computed(() => {
       if (state.value.status !== "ready") return styleToText(props.style);
       const parts: string[] = [];
-      if (state.value.content.styleText) parts.push(state.value.content.styleText);
+      if (presentation.value?.styleText) parts.push(presentation.value.styleText);
       const propStyle = styleToText(props.style);
       if (propStyle) parts.push(propStyle);
       const style = parts.filter(Boolean).join(";") || undefined;
