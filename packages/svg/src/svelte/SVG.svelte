@@ -3,7 +3,7 @@
   import { createSvgController, type SvelteSvgProps, type SvgState } from "./runtime";
   import { rewriteSvgAttributes, rewriteSvgValue } from "../core/ids";
 
-  import { createSvgPresentation, svgDimensions } from "../core/presentation";
+  import { createSvgPresentation, svgDimensions, svgViewBox } from "../core/presentation";
 
   let {
     src,
@@ -32,7 +32,7 @@
   }: SvelteSvgProps = $props();
 
   const controller = createSvgController();
-  const present = createSvgPresentation();
+  const present = createSvgPresentation<string>();
   let state: SvgState = $state({ status: "loading" });
 
   $effect(() => {
@@ -73,10 +73,8 @@
     const attrs: Record<string, string | number | boolean | undefined> = { ...presentation?.attrs, ...svgDimensions({ size, width, height }) };
     if (width !== undefined) attrs.width = width;
     if (height !== undefined) attrs.height = height;
-    if (viewBox !== undefined) attrs.viewBox = viewBox;
-    else if (!state.content.attrs.viewBox && (width !== undefined || height !== undefined)) {
-      attrs.viewBox = state.content.attrs.viewBox ?? "0 0 24 24";
-    }
+    const viewport = svgViewBox(state.content.attrs, { size, width, height, viewBox });
+    if (viewport !== undefined) attrs.viewBox = viewport;
     if (fill !== undefined) attrs.fill = fill;
     if (stroke !== undefined) attrs.stroke = stroke;
     if (role !== undefined) attrs.role = role;

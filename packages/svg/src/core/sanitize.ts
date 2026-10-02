@@ -7,12 +7,12 @@ import {
   type SvgNode,
 } from "./ast";
 
-export type ParsedInlineSvg = {
+export type ParsedInlineSvg<Style = Record<string, string>> = {
   node: SvgNode;
   ids?: ReadonlyMap<string, string>;
   attrs: Record<string, string>;
   className?: string;
-  style?: Record<string, string>;
+  style?: Style;
   styleText?: string;
   innerHTML: string;
 };

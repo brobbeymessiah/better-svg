@@ -5,6 +5,7 @@ import { inlineSvgFromNode } from "./sanitize";
 export const parseXmlNode = (markup: string, sanitize: boolean) => {
   try {
     const document = new DOMParser({
+      xmlns: { xlink: "http://www.w3.org/1999/xlink" },
       onError: (_level, message) => {
         throw new Error(`Invalid SVG markup: ${message}`);
       },

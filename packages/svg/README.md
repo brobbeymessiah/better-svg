@@ -130,8 +130,11 @@ import logo from "./assets/svg/logo.svg?raw";
 ```
 
 Use `?raw` for local files in static builds. Relative URLs resolve against
-`Astro.url` and require an asset server reachable during rendering. Absolute
-remote URLs, inline markup, and SVG data URLs work on the server. Callbacks
+`Astro.url` and require an asset server reachable during rendering. Cross-origin
+URLs require an explicit `allowedOrigins` list, such as
+`allowedOrigins={["https://cdn.example.com"]}`. HTTP redirects are rejected.
+Use trusted, fixed origins when accepting request-derived URLs. Inline markup
+and SVG data URLs work on the server. Callbacks
 also run on the server. Astro has a fallback slot and no client loading state.
 
 Register raw local SVGs to use `name` without fetching:

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { parseXmlNode } from "./core/xml";
 import { createSvgId, rewriteSvgAttributes, scopeSvgNodeIds } from "./core/ids";
-import { svgDimensions, type SvgPresentation } from "./core/presentation";
+import { svgDimensions, svgViewBox, type SvgPresentation } from "./core/presentation";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 import {
   Svg,
@@ -210,6 +210,11 @@ export const renderSvgNode = (
   const merged = style ? { ...props, style } : props;
   if (size?.width !== undefined) merged.width = size.width;
   if (size?.height !== undefined) merged.height = size.height;
+  const viewBox = svgViewBox(
+    Object.fromEntries(root.attrs.map(({ name, value }) => [name, value])),
+    size ?? {},
+  );
+  if (viewBox !== undefined) merged.viewBox = viewBox;
   return (
     <Svg key="root" {...merged}>
       {renderChildren(root.children, override)}

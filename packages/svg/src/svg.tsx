@@ -1,9 +1,14 @@
 import * as React from "react";
 import { ensureParsedSvg, resolveMarkup, resolveSource, type SvgNameInput } from "./core";
-import { createSvgId, rewriteSvgAttributes, scopeParsedSvgIds } from "./core/ids";
+import { createSvgId, rewriteSvgAttributes, scopeParsedSvgIds, withSvgRootId } from "./core/ids";
 
 import type { ParsedInlineSvg } from "./core/sanitize";
-import { createSvgPresentation, svgDimensions, type SvgPresentation } from "./core/presentation";
+import {
+  createSvgPresentation,
+  svgDimensions,
+  svgViewBox,
+  type SvgPresentation,
+} from "./core/presentation";
 
 type SvgSourceProps = { src: string; name?: never } | { name: SvgNameInput; src?: never };
 
@@ -48,7 +53,7 @@ export const SVG = React.forwardRef<SVGSVGElement, SvgProps>(
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<Error | null>(null);
     const [prefix] = React.useState(createSvgId);
-    const [present] = React.useState(createSvgPresentation);
+    const [present] = React.useState(() => createSvgPresentation());
 
     const resolvedSource = React.useMemo(() => resolveSource(src, name), [name, src]);
 
@@ -114,9 +119,9 @@ export const SVG = React.forwardRef<SVGSVGElement, SvgProps>(
       return fallback ? <>{fallback}</> : null;
     }
 
-    const mergedClassName = [content.className, className].filter(Boolean).join(" ");
-    const mergedStyle = content.style ? { ...content.style, ...style } : style;
-    const presented = present(content, { title, desc });
+    const presented = present(withSvgRootId(content, rest.id), { title, desc });
+    const mergedClassName = [presented.className, className].filter(Boolean).join(" ");
+    const mergedStyle = presented.style ? { ...presented.style, ...style } : style;
 
     return (
       <svg
@@ -126,9 +131,10 @@ export const SVG = React.forwardRef<SVGSVGElement, SvgProps>(
           rest["aria-label"] !== undefined ? undefined : presented.attrs["aria-labelledby"]
         }
         {...svgDimensions({ size, width, height })}
-        {...rewriteSvgAttributes(rest, content.ids)}
+        viewBox={svgViewBox(presented.attrs, { size, width, height, viewBox: rest.viewBox })}
+        {...rewriteSvgAttributes(rest, presented.ids)}
         className={mergedClassName || undefined}
-        style={rewriteSvgAttributes(mergedStyle ?? {}, content.ids) as React.CSSProperties}
+        style={rewriteSvgAttributes(mergedStyle ?? {}, presented.ids) as React.CSSProperties}
         dangerouslySetInnerHTML={{ __html: presented.innerHTML }}
       />
     );

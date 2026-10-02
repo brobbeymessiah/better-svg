@@ -1,6 +1,10 @@
 export const isInlineSvg = (source: string) => {
   const trimmed = source.trim();
-  return trimmed.startsWith("<svg") || trimmed.startsWith("<?xml");
+  return (
+    trimmed.startsWith("<svg") ||
+    trimmed.startsWith("<?xml") ||
+    /^(?:<!--|<!DOCTYPE\s)/i.test(trimmed)
+  );
 };
 
 export const decodeDataUrl = (source: string) => {

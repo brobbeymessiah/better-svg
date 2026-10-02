@@ -11,6 +11,7 @@ import {
   type JSX,
 } from "solid-js";
 import { Dynamic } from "solid-js/web";
+import { withSvgRootId } from "../core/ids";
 import {
   createWebSvgController,
   mergeSvgAttributes,
@@ -79,7 +80,9 @@ export const SVG = (props: SvgProps): JSX.Element => {
       return state().status === "loading" ? options.loading : options.fallback;
     },
     children: (content: NonNullable<ReturnType<typeof ready>>) => {
-      const presentation = createMemo(() => present(content, options));
+      const presentation = createMemo(() =>
+        present(withSvgRootId(content, attributes.id), options),
+      );
       return createComponent(
         Dynamic,
         mergeProps(

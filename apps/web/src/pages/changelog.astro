@@ -147,11 +147,14 @@ const versions = getHeadings().filter((heading) => heading.depth === 2);
       document.documentElement.style.setProperty("--changelog-header-height", `${headerBottom}px`);
       const desktop = window.matchMedia("(min-width: 64rem)").matches;
       trigger.hidden = desktop || links.getBoundingClientRect().bottom > headerBottom;
-      if (desktop && drawer.open) drawer.close();
       const threshold = headerBottom + trigger.getBoundingClientRect().height + 32;
       let active = headings[0];
       for (const heading of headings) {
         if (heading.getBoundingClientRect().top <= threshold) active = heading;
+      }
+      if (desktop && drawer.open) {
+        selectedHeading = active ?? null;
+        drawer.close();
       }
       if (currentVersion) currentVersion.textContent = active?.textContent ?? "";
       for (const link of versionLinks) {

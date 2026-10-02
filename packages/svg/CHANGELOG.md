@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.6.5
+
+### Fixed
+
+- Keep authored Vue root CSS and caller references connected when a caller overrides the SVG ID, including with `uniqueIds={false}`.
+
+## 0.6.4
+
+### Fixed
+
+- Keep Vue SVG references valid when callers override the root ID or forward reference attributes.
+- Preserve empty HTML elements inside trusted SVG foreignObject content during ID and label transformations.
+
+## 0.6.3
+
+### Fixed
+
+- Scale SVGs authored with absolute-unit dimensions without cropping, and avoid inventing a viewBox for unknown source dimensions.
+
+## 0.6.2
+
+### Security
+
+- Require trusted `allowedOrigins` for cross-origin Astro fetches and reject HTTP redirects during server rendering.
+
+### Fixed
+
+- Preserve caller cancellation in Astro and recognize SVGs with XML declarations, comments, or DOCTYPE prefixes.
+- Keep escaped CSS selectors, accessibility references, and root ID overrides connected to their SVG targets.
+- Preserve authored accessibility references when adding titles or descriptions, and scale viewBox-less artwork when setting dimensions or `size`.
+- Keep Svelte's exported parsed `style` as a CSS string, preserve trusted SVG comments, and accept legacy xlink attributes without namespace declarations.
+- Discover symlinked local SVG files and directories without following directory cycles.
+
 ## 0.6.1
 
 ### Changed

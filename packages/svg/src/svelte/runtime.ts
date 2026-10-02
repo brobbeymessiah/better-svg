@@ -27,7 +27,7 @@ export type SvelteSvgProps = SvgPresentation & {
   "aria-hidden"?: boolean | "true" | "false";
 };
 
-export type ParsedSvg = ParsedInlineSvg;
+export type ParsedSvg = ParsedInlineSvg<string>;
 
 export const parseSvgMarkup = (
   source: string,
@@ -39,7 +39,17 @@ export const parseSvgMarkup = (
   const inline = ensureParsedSvg(source, markup, sanitize, cache);
   if (!inline) return null;
   const scoped = prefix ? scopeParsedSvgIds(inline, prefix) : inline;
-  return scoped;
+  return {
+    node: scoped.node,
+    attrs: scoped.attrs,
+    className: scoped.className,
+    ids: scoped.ids,
+    style: scoped.styleText,
+    styleText: scoped.styleText,
+    get innerHTML() {
+      return scoped.innerHTML;
+    },
+  };
 };
 
 export type SvgState =
