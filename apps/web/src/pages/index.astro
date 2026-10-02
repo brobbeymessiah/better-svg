@@ -1,4 +1,6 @@
 ---
+import { frameworks } from "../data/frameworks";
+import { adapterExamples } from "../data/adapter-examples";
 import Base from "../layouts/Base.astro";
 import svgPkg from "../../../../packages/svg/package.json";
 
@@ -9,6 +11,9 @@ const marqueeItems = [
   "React Native",
   "Vue",
   "Svelte",
+  "Solid",
+  "Astro",
+  "Angular",
   "Flutter",
   "inline rendering",
   "zero wrappers",
@@ -20,19 +25,11 @@ const marqueeItems = [
   "loading & fallback",
 ];
 
-const frameworkBadges = [
-  { id: "react", name: "React", sub: "@mhaadi/svg/react" },
-  { id: "react-native", name: "React Native", sub: "@mhaadi/svg/react-native" },
-  { id: "vue", name: "Vue", sub: "@mhaadi/svg/vue" },
-  { id: "svelte", name: "Svelte", sub: "@mhaadi/svg/svelte" },
-  { id: "flutter", name: "Flutter", sub: "svg_flutter", published: false },
-];
-
 const featureCards = [
   {
     icon: `<path d="M12 3v1m0 16v1M4.22 4.22l.707.707m12.728 12.728.707.707M1 12h2m18 0h2M4.22 19.78l.707-.707M18.071 5.929l.707-.707" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`,
     title: "Inline rendering",
-    desc: "On the web (React, Vue, Svelte) renders a real <svg> element — not an <img> tag — so CSS currentColor, animations, and JavaScript work natively. React Native renders a react-native-svg tree and Flutter renders via flutter_svg.",
+    desc: "On the web (React, Vue, Svelte, Solid, Astro, Angular) renders a real <svg> element — not an <img> tag — so CSS currentColor, animations, and JavaScript work natively. React Native renders a react-native-svg tree and Flutter renders via flutter_svg.",
   },
   {
     icon: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`,
@@ -63,7 +60,7 @@ const featureCards = [
 import CodeBlock from "../components/CodeBlock.astro";
 ---
 
-<Base title="BetterSVG — Inline SVG for React, React Native, Vue, Svelte, Flutter">
+<Base title="BetterSVG — Inline SVG for React, React Native, Vue, Svelte, Solid, Astro, Angular, Flutter">
   <!-- NAV -->
   <nav class="sticky top-0 left-0 right-0 z-50 border-b border-coal-2 bg-coal/90 backdrop-blur-md">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 lg:px-4 py-3 lg:py-4">
@@ -144,7 +141,7 @@ import CodeBlock from "../components/CodeBlock.astro";
         <!-- Sub -->
         <p class="mt-8 max-w-md text-base text-zinc-muted leading-relaxed animate-fade-up delay-400">
           Resolve, sanitize, and render SVGs inline in React, React Native, Vue,
-          Svelte, and Flutter. From local names to remote URLs — with full control
+          Svelte, Solid, Astro, Angular, and Flutter. From local names to remote URLs — with full control
           over props, caching, and security.
         </p>
 
@@ -201,6 +198,7 @@ import CodeBlock from "../components/CodeBlock.astro";
                 <button type="button" class="fw-tab" data-fw-tab="react-native">React Native</button>
                 <button type="button" class="fw-tab" data-fw-tab="vue">Vue</button>
                 <button type="button" class="fw-tab" data-fw-tab="svelte">Svelte</button>
+                {adapterExamples.map((adapter) => <button type="button" class="fw-tab" data-fw-tab={adapter.id}>{adapter.label}</button>)}
                 <button type="button" class="fw-tab" data-fw-tab="flutter">Flutter</button>
               </div>
 
@@ -240,6 +238,7 @@ import CodeBlock from "../components/CodeBlock.astro";
   width="24"
   height="24"
 />`} lang="svelte" /></div>
+                {adapterExamples.map((adapter) => <div data-fw-panel={adapter.id} hidden><CodeBlock code={adapter.code} lang={adapter.lang} /></div>)}
                 <div data-fw-panel="flutter" hidden><CodeBlock code={`import 'package:svg_flutter/svg_flutter.dart';
 
 Svg(
@@ -304,7 +303,7 @@ Svg(
     <div class="mx-auto max-w-6xl px-4 py-16 lg:py-24">
       <div class="mb-10 lg:mb-14 flex items-end justify-between gap-4">
         <div>
-          <p class="mb-2 font-mono text-xs tracking-widest text-acid uppercase">Five adapters, one mental model</p>
+          <p class="mb-2 font-mono text-xs tracking-widest text-acid uppercase">Eight adapters, one mental model</p>
           <h2 class="font-display text-5xl tracking-wider text-[#e8e8e8]">FRAMEWORKS</h2>
         </div>
         <a href="/docs" class="hidden sm:flex items-center gap-2 text-sm text-zinc-muted hover:text-acid transition-colors group">
@@ -315,14 +314,14 @@ Svg(
         </a>
       </div>
 
-      <div class="grid gap-px bg-coal-2 sm:grid-cols-2 lg:grid-cols-5 overflow-hidden border border-coal-2">
-        {frameworkBadges.map((fw) => (
+      <div class="grid gap-px bg-coal-2 sm:grid-cols-2 lg:grid-cols-4 overflow-hidden border border-coal-2">
+        {frameworks.map((fw) => (
           <a href={`/docs?fw=${fw.id}`} class="group bg-coal p-6 hover:bg-coal-1 transition-colors flex flex-col gap-3">
             <div class="flex items-center gap-2">
               <span class="h-1.5 w-1.5 bg-acid shrink-0"></span>
               <span class="font-mono text-[10px] tracking-widest text-zinc-muted uppercase">Adapter</span>
             </div>
-            <h3 class="font-display text-2xl tracking-wider text-[#e8e8e8]">{fw.name}</h3>
+            <h3 class="font-display text-2xl tracking-wider text-[#e8e8e8]">{fw.label}</h3>
             <code class="font-mono text-[11px] text-zinc-muted break-all">{fw.sub}</code>
               {fw.published === false && (
                 <span class="mt-1 inline-block w-fit border border-amber-700/40 bg-amber-950/30 px-1.5 py-0.5 font-mono text-[10px] text-amber-400 uppercase tracking-widest">Coming soon</span>
@@ -416,7 +415,7 @@ Svg(
         SHIP<br/><span class="text-acid acid-glow">BETTER SVG</span><span class="opacity-30"> TODAY.</span>
       </h2>
       <p class="mt-6 mx-auto max-w-md text-zinc-muted">
-        One mental model. Five frameworks. Every SVG format. Zero compromises on
+        One mental model. Eight frameworks. Every SVG format. Zero compromises on
         security or performance.
       </p>
       <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -519,6 +518,9 @@ Svg(
       "react-native": "App.tsx",
       vue: "App.vue",
       svelte: "App.svelte",
+      solid: "App.tsx",
+      astro: "Icon.astro",
+      angular: "app.component.ts",
       flutter: "icon.dart",
     };
     const tabHandlers: Array<{ el: HTMLButtonElement; fn: () => void }> = [];

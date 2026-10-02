@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import FrameworkPicker from "../components/FrameworkPicker.astro";
+import { adapterExamples } from "../data/adapter-examples";
 import { frameworks } from "../data/frameworks";
 import svgPkg from "../../../../packages/svg/package.json";
 
@@ -36,7 +37,7 @@ import PmTabs from "../components/PmTabs.astro";
 
 <Base
   title="Docs — BetterSVG"
-  description="Full API reference for @mhaadi/svg and svg_flutter — the inline SVG components for React, React Native, Vue, Svelte, and Flutter."
+  description="Full API reference for @mhaadi/svg and svg_flutter — the inline SVG components for React, React Native, Vue, Svelte, Solid, Astro, Angular, and Flutter."
 >
   <!-- NAV -->
   <nav class="sticky top-0 left-0 right-0 z-50 border-b border-coal-2 bg-coal/90 backdrop-blur-md">
@@ -155,7 +156,7 @@ import PmTabs from "../components/PmTabs.astro";
               Complete reference for the <code class="rounded-none bg-coal-2 px-1.5 py-0.5 font-mono text-xs text-[#e8e8e8]">{"<SVG>"}</code> /
               <code class="rounded-none bg-coal-2 px-1.5 py-0.5 font-mono text-xs text-[#e8e8e8]">Svg</code> component.
               Resolves, sanitizes, and renders SVGs inline — from any source, in
-              React, React Native, Vue, Svelte, or Flutter.
+              React, React Native, Vue, Svelte, Solid, Astro, Angular, or Flutter.
             </p>
           </div>
 
@@ -165,10 +166,10 @@ import PmTabs from "../components/PmTabs.astro";
             <p class="docs-body">
               <code class="inline-code">@mhaadi/svg</code> exposes a single component —{" "}
               <code class="inline-code">{"<SVG>"}</code> — that resolves SVG content from any source,
-              sanitizes unsafe markup, and renders it inline. On the web (React, Vue, Svelte) it renders a
+              sanitizes unsafe markup, and renders it inline. On the web (React, Vue, Svelte, Solid, Astro, Angular) it renders a
               real <code class="inline-code">{"<svg>"}</code> DOM element; React Native renders a
               react-native-svg tree and Flutter renders via flutter_svg. Available for
-              <strong class="text-[#e8e8e8]"> React, React Native, Vue, Svelte</strong> via subpath exports
+              <strong class="text-[#e8e8e8]"> React, React Native, Vue, Svelte, Solid, Astro, Angular</strong> via subpath exports
               on a single npm package, and for <strong class="text-[#e8e8e8]">Flutter</strong> via the
               separate <code class="inline-code">svg_flutter</code> pub package. No{" "}
               <code class="inline-code">{"<img>"}</code> wrappers on the web adapters.
@@ -176,10 +177,10 @@ import PmTabs from "../components/PmTabs.astro";
 
             <div class="mt-6 grid sm:grid-cols-4 gap-4">
               {[
-                { label: "Zero dependencies" },
+                { label: "Shared SVG core" },
                 { label: "TypeScript-first" },
                 { label: "Sanitized by default" },
-                { label: "5 frameworks" },
+                { label: "8 frameworks" },
               ].map((badge) => (
                 <div class="flex items-center gap-2 rounded-none border border-coal-4 bg-coal-1 px-4 py-3">
                   <span class="text-acid text-xs">⬡</span>
@@ -196,8 +197,8 @@ import PmTabs from "../components/PmTabs.astro";
 
             <div class="mt-6 space-y-6">
               <!-- React / RN / Vue / Svelte (one package) -->
-              <div data-fw-show="react react-native vue svelte">
-                <p class="mb-3 text-sm text-[#e8e8e8] font-semibold">JS/TS — React, React Native, Vue, Svelte</p>
+              <div data-fw-show="react react-native vue svelte solid astro angular">
+                <p class="mb-3 text-sm text-[#e8e8e8] font-semibold">JS/TS — React, React Native, Vue, Svelte, Solid, Astro, Angular</p>
                 <PmTabs
                   commands={[
                     { pm: "pnpm", cmd: "pnpm add @mhaadi/svg" },
@@ -207,12 +208,17 @@ import PmTabs from "../components/PmTabs.astro";
                   ]}
                 />
                 <div class="mt-3 rounded-none border border-coal-4 bg-coal-1 p-4">
-                  <p class="font-mono text-xs text-zinc-muted">
+                  <p data-fw-show="react" class="font-mono text-xs text-zinc-muted">
                     <span class="text-acid">Peer (React):</span> React 18+ · TypeScript 5+ (optional)
                   </p>
-                  <p class="font-mono text-xs text-zinc-muted mt-1">
+                  <p data-fw-show="react-native" class="hidden font-mono text-xs text-zinc-muted">
                     <span class="text-acid">Peer (RN):</span> react-native, react-native-svg
                   </p>
+                  <p data-fw-show="vue" class="hidden font-mono text-xs text-zinc-muted">Requires Vue 3.</p>
+                  <p data-fw-show="svelte" class="hidden font-mono text-xs text-zinc-muted">Requires Svelte 5.</p>
+                  <p data-fw-show="solid" class="hidden font-mono text-xs text-zinc-muted">Requires Solid 1.9+.</p>
+                  <p data-fw-show="astro" class="hidden font-mono text-xs text-zinc-muted">Requires Astro 5+.</p>
+                  <p data-fw-show="angular" class="hidden font-mono text-xs text-zinc-muted">Requires Angular 20+.</p>
                 </div>
               </div>
 
@@ -355,6 +361,13 @@ export function MyIcon() {
               </p>
             </div>
 
+            {adapterExamples.map((adapter) => (
+              <div data-fw-show={adapter.id} class="hidden">
+                <CodeBlock code={adapter.code} lang={adapter.lang} />
+                <p class="docs-body mt-4">{adapter.details}</p>
+              </div>
+            ))}
+
             <!-- Flutter -->
             <div data-fw-show="flutter" class="hidden">
               <p class="mb-3 text-xs text-amber-400 font-mono">Not yet published — API preview</p>
@@ -387,7 +400,7 @@ class MyIcon extends StatelessWidget {
           <section id="props" class="mb-16">
             <h2 class="docs-heading">Props</h2>
             <p class="docs-body">
-              The base prop set is shared across all adapters. Framework-specific extras are
+              Source, sanitization, and cache options are shared across adapters. Astro has a fallback slot and no client loading state. Angular uses template inputs and svgLoad/svgError outputs. Framework-specific extras are
               documented in the <a href="#framework-specifics" class="text-acid hover:underline">Framework Specifics</a> section.
             </p>
 
@@ -436,7 +449,7 @@ class MyIcon extends StatelessWidget {
                     <td><code class="font-mono text-xs text-acid">loading</code></td>
                     <td><code class="font-mono text-xs text-[#e8c97e]">slot / ReactNode / Widget?</code></td>
                     <td><code class="font-mono text-xs text-zinc-muted">—</code></td>
-                    <td class="text-zinc-muted text-sm">Rendered while fetching or parsing SVG. Slots in Vue, snippets in Svelte.</td>
+                    <td class="text-zinc-muted text-sm">Rendered while fetching or parsing SVG. Slots in Vue, snippets in Svelte, JSX in Solid, templates in Angular. Astro resolves on the server.</td>
                   </tr>
                   <tr>
                     <td><code class="font-mono text-xs text-acid">fallback</code></td>
@@ -547,6 +560,14 @@ const icons: SvgName[] = ["logo", "arrow"];`} lang="tsx" />
 </SVG>`} lang="svelte" />
                 </div>
               </div>
+
+              {adapterExamples.map((adapter) => (
+                <div data-fw-show={adapter.id} class="hidden">
+                  <h3 class="font-semibold text-[#e8e8e8] mb-3">{adapter.label}</h3>
+                  <p class="docs-body mb-4">{adapter.details}</p>
+                  <CodeBlock code={adapter.states} lang={adapter.id === "angular" ? "html" : adapter.lang} />
+                </div>
+              ))}
 
               <!-- Flutter -->
               <div data-fw-show="flutter" class="hidden">
@@ -763,6 +784,13 @@ Svg(
             <h2 class="docs-heading">Examples</h2>
 
             <div class="space-y-8">
+              {adapterExamples.map((adapter) => (
+                <div data-fw-show={adapter.id} class="hidden">
+                  <h3 class="font-semibold text-[#e8e8e8] mb-3">{adapter.label} usage and fallback</h3>
+                  <CodeBlock code={adapter.states} lang={adapter.id === "angular" ? "html" : adapter.lang} />
+                </div>
+              ))}
+
               <!-- Example 1: Icon button -->
               <div data-fw-show="react">
                 <div class="mb-3 flex items-center gap-2">

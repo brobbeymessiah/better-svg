@@ -199,17 +199,10 @@ const current = frameworks.find((f) => f.id === initial) ?? frameworks[0];
   type PickerEl = HTMLElement & { _initialized?: boolean };
 
   const STORAGE_KEY = "bettersvg:framework";
-  const validIds = new Set([
-    "react",
-    "react-native",
-    "vue",
-    "svelte",
-    "flutter",
-  ]);
-
   import { frameworkLabels } from "../data/frameworks";
 
   const labels = frameworkLabels;
+  const validIds = new Set(Object.keys(labels));
 
   const applyFramework = (id: string) => {
     if (!validIds.has(id)) return;
