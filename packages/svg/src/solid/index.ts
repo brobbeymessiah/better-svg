@@ -79,7 +79,7 @@ export const SVG = (props: SvgProps): JSX.Element => {
       return state().status === "loading" ? options.loading : options.fallback;
     },
     children: (content: NonNullable<ReturnType<typeof ready>>) => {
-      const presentation = createMemo(() => ({ ...content, ...present(content, options) }));
+      const presentation = createMemo(() => present(content, options));
       return createComponent(
         Dynamic,
         mergeProps(

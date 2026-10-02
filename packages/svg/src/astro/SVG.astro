@@ -18,7 +18,7 @@ try {
   const error = cause instanceof Error ? cause : new Error("Failed to load SVG.");
   onSvgError?.(error);
 }
-if (content) content = { ...content, ...createSvgPresentation()(content, { title, desc }) };
+if (content) content = createSvgPresentation()(content, { title, desc });
 const attrs = content ? { ...attributes, ...mergeSvgAttributes(content, { ...attributes, size }) } : {};
 ---
 

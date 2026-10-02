@@ -319,3 +319,15 @@ React Native maps `title` to `accessibilityLabel` and `desc` to
 `accessibilityHint` on the wrapper View. An explicit accessibility label,
 hint, or `accessible` prop takes precedence. A nonempty title makes the
 wrapper accessible by default.
+
+## Parsing
+
+Browser adapters use the browser's XML parser. Astro and React Native use
+`@xmldom/xmldom` to parse SVGs without a browser DOM. The package has this
+runtime dependency; other adapters do not import it. Our sanitizer checks
+the parsed tree before rendering.
+
+Parsed and sanitized trees are cached by source, markup, sanitization mode,
+and parser. Per-instance IDs and labels leave the cached tree unchanged.
+Markup serializes when rendering needs it, and label updates reuse the
+serialized children that did not change. `cache={false}` skips reuse.

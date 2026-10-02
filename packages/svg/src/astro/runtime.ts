@@ -1,27 +1,10 @@
-import { DOMParser, type Element } from "@xmldom/xmldom";
-import { renderNode, sanitizeNode, splitAttributes, type SvgNode } from "../core/ast";
+import { ensureParsedSvg } from "../core/cache";
+import { parseXmlSvg } from "../core/xml";
 import { resolveMarkup, resolveSource } from "../core/resolve";
 import { decodeDataUrl, isInlineSvg } from "../core/url";
 import type { ParsedInlineSvg } from "../core/sanitize";
 import type { WebSvgOptions } from "../core/web";
 import { createSvgId, scopeParsedSvgIds } from "../core/ids";
-
-const toSvgNode = (element: Element): SvgNode => {
-  const attrs = [];
-  for (let i = 0; i < element.attributes.length; i++) {
-    const attr = element.attributes.item(i);
-    if (attr) attrs.push({ name: attr.name, value: attr.value });
-  }
-  const children: SvgNode[] = [];
-  for (let child = element.firstChild; child; child = child.nextSibling) {
-    if (child.nodeType === 1) {
-      children.push(toSvgNode(child as Element));
-    } else if (child.nodeType === 3 || child.nodeType === 4) {
-      children.push({ tag: "#text", attrs: [], children: [], text: child.nodeValue ?? "" });
-    }
-  }
-  return { tag: element.tagName, attrs, children };
-};
 
 export const loadAstroSvg = async (
   options: WebSvgOptions,
@@ -37,25 +20,14 @@ export const loadAstroSvg = async (
     fetchOptions: options.fetchOptions,
     cache: options.cache ?? true,
   });
-  const document = new DOMParser({
-    onError: (_level, message) => {
-      throw new Error(`Invalid SVG markup: ${message}`);
-    },
-  }).parseFromString(markup, "image/svg+xml");
-  const element = document.documentElement;
-  if (!element || element.tagName !== "svg") throw new Error("SVG markup is invalid.");
-  const node = toSvgNode(element);
-  const root = options.sanitize === false ? node : sanitizeNode(node);
-  if (!root) throw new Error("SVG markup is invalid.");
-  const { attributes, className, style, styleText } = splitAttributes(root.attrs);
-  const content = {
-    attrs: Object.fromEntries(attributes.map(({ name, value }) => [name, value])),
-    className,
-    style,
-    styleText,
-    innerHTML: root.children.map(renderNode).join(""),
-    node: root,
-  };
+  const content = ensureParsedSvg(
+    source,
+    markup,
+    options.sanitize ?? true,
+    options.cache ?? true,
+    parseXmlSvg,
+  );
+  if (!content) throw new Error("SVG markup is invalid.");
   options.onSvgLoad?.(markup);
   return options.uniqueIds === false ? content : scopeParsedSvgIds(content, createSvgId());
 };
