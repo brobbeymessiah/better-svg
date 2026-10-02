@@ -15,7 +15,13 @@ import {
   toCamelCase,
   type SvgNameInput,
 } from "../core";
-import { createSvgId, rewriteSvgAttributes, rewriteSvgValue, scopeParsedSvgIds } from "../core/ids";
+import {
+  createSvgId,
+  rewriteSvgAttributes,
+  rewriteSvgValue,
+  scopeParsedSvgIds,
+  withSvgRootId,
+} from "../core/ids";
 
 import type { ParsedInlineSvg } from "../core/sanitize";
 import { createSvgPresentation, svgDimensions, svgViewBox } from "../core/presentation";
@@ -53,7 +59,9 @@ export { styleToText };
 
 export const SVG = defineComponent({
   name: "SVG",
+  inheritAttrs: false,
   props: {
+    id: { type: String as PropType<string | undefined>, default: undefined },
     src: { type: String as PropType<string | undefined>, default: undefined },
     name: { type: [String, Number] as PropType<SvgNameInput | undefined>, default: undefined },
     fetchOptions: { type: Object as PropType<RequestInit | undefined>, default: undefined },
@@ -89,7 +97,7 @@ export const SVG = defineComponent({
     },
   },
   emits: ["svg-load", "svg-error"],
-  setup(props, { slots, emit }) {
+  setup(props, { slots, emit, attrs }) {
     const prefix = createSvgId();
     const present = createSvgPresentation();
     const state = ref<State>({ status: "loading" });
@@ -150,6 +158,12 @@ export const SVG = defineComponent({
       if (controller) controller.abort();
     });
 
+    const presentation = computed(() =>
+      state.value.status === "ready"
+        ? present(withSvgRootId(state.value.content, props.id), props)
+        : undefined,
+    );
+
     const mergedClass = computed(() => {
       if (state.value.status !== "ready") return undefined;
       const parts: string[] = [];
@@ -165,14 +179,9 @@ export const SVG = defineComponent({
       const propStyle = styleToText(props.style);
       if (propStyle) parts.push(propStyle);
       const style = parts.filter(Boolean).join(";") || undefined;
-      return style && state.value.content.ids
-        ? rewriteSvgValue("style", style, state.value.content.ids)
-        : style;
+      const ids = presentation.value?.ids;
+      return style && ids ? rewriteSvgValue("style", style, ids) : style;
     });
-
-    const presentation = computed(() =>
-      state.value.status === "ready" ? present(state.value.content, props) : undefined,
-    );
 
     const rootAttrs = computed(() => {
       if (state.value.status !== "ready") return {};
@@ -180,6 +189,7 @@ export const SVG = defineComponent({
         ...presentation.value?.attrs,
         ...svgDimensions(props),
       };
+      if (props.id !== undefined) out.id = props.id;
       if (props.width !== undefined) out.width = props.width;
       if (props.height !== undefined) out.height = props.height;
       const viewBox = svgViewBox(state.value.content.attrs, props);
@@ -192,7 +202,7 @@ export const SVG = defineComponent({
         delete out["aria-labelledby"];
       }
       if (props.ariaHidden !== undefined) out["aria-hidden"] = props.ariaHidden;
-      return rewriteSvgAttributes(out, state.value.content.ids);
+      return rewriteSvgAttributes(out, presentation.value?.ids);
     });
 
     return (): unknown => {
@@ -209,6 +219,7 @@ export const SVG = defineComponent({
       }
       return h("svg", {
         ...rootAttrs.value,
+        ...rewriteSvgAttributes(attrs, presentation.value?.ids),
         class: mergedClass.value,
         style: mergedStyle.value,
         innerHTML: presentation.value?.innerHTML,

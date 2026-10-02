@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.4
+
+### Fixed
+
+- Keep Vue SVG references valid when callers override the root ID or forward reference attributes.
+- Preserve empty HTML elements inside trusted SVG foreignObject content during ID and label transformations.
+
 ## 0.6.3
 
 ### Fixed

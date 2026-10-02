@@ -278,18 +278,22 @@ export const sanitizeNode = (node: SvgNode): SvgNode | null => {
   };
 };
 
-export const renderNode = (node: SvgNode): string => {
+const serializeNode = (node: SvgNode, html: boolean): string => {
   if (node.tag === "#comment") return `<!--${node.text ?? ""}-->`;
   if (node.tag === "#text") {
     return encodeText(node.text ?? "");
   }
   const attrText = node.attrs.map((attr) => ` ${attr.name}="${encodeAttr(attr.value)}"`).join("");
-  if (VOID_ELEMENTS.has(node.tag.toLowerCase()) || node.children.length === 0) {
+  const tag = node.tag.toLowerCase();
+  if (VOID_ELEMENTS.has(tag) || (!html && node.children.length === 0)) {
     return `<${node.tag}${attrText}/>`;
   }
-  const inner = node.children.map(renderNode).join("");
+  const htmlChildren = tag === "foreignobject" || (html && tag !== "svg");
+  const inner = node.children.map((child) => serializeNode(child, htmlChildren)).join("");
   return `<${node.tag}${attrText}>${inner}</${node.tag}>`;
 };
+
+export const renderNode = (node: SvgNode): string => serializeNode(node, false);
 
 export const parseAndSanitize = (markup: string, sanitize: boolean): SvgNode | null => {
   const root = parseSvgString(markup);
