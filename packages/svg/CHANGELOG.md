@@ -1,111 +1,44 @@
 # Changelog
 
-## 0.6.5
-
-### Fixed
-
-- Keep authored Vue root CSS and caller references connected when a caller overrides the SVG ID, including with `uniqueIds={false}`.
-
-## 0.6.4
-
-### Fixed
-
-- Keep Vue SVG references valid when callers override the root ID or forward reference attributes.
-- Preserve empty HTML elements inside trusted SVG foreignObject content during ID and label transformations.
-
-## 0.6.3
-
-### Fixed
-
-- Scale SVGs authored with absolute-unit dimensions without cropping, and avoid inventing a viewBox for unknown source dimensions.
-
-## 0.6.2
-
-### Security
-
-- Require trusted `allowedOrigins` for cross-origin Astro fetches and reject HTTP redirects during server rendering.
-
-### Fixed
-
-- Preserve caller cancellation in Astro and recognize SVGs with XML declarations, comments, or DOCTYPE prefixes.
-- Keep escaped CSS selectors, accessibility references, and root ID overrides connected to their SVG targets.
-- Preserve authored accessibility references when adding titles or descriptions, and scale viewBox-less artwork when setting dimensions or `size`.
-- Keep Svelte's exported parsed `style` as a CSS string, preserve trusted SVG comments, and accept legacy xlink attributes without namespace declarations.
-- Discover symlinked local SVG files and directories without following directory cycles.
-
-## 0.6.1
-
-### Changed
-
-- Reuse parsed and sanitized SVGs in Astro, serialize markup only when needed, and reuse unchanged child markup when labels change.
-
-### Fixed
-
-- Parse React Native SVGs with the XML parser so comments, CDATA, and malformed markup receive consistent handling.
-
-## 0.6.0
-
-### Added
-
-- Set both dimensions with `size`, with explicit `width` and `height` taking precedence.
-- Set accessible `title` and `desc` text across web adapters without reloading the source. React Native maps these to its accessibility label and hint.
-
-## 0.5.0
-
-### Added
-
-- Discover local SVGs by name with configurable directories through `@mhaadi/svg/vite/plugin` and `@mhaadi/svg/astro/integration`. Local files render without a fetch, and development reloads when files change.
-
-### Fixed
-
-- Preserve the legacy Vite registration import during tree shaking and register raw SVG markup instead of asset URLs.
-
-## 0.4.0
-
-### Fixed
-
-- Isolate SVG IDs per component instance so repeated gradients, masks, clip paths, and fragment references do not interfere across adapters.
-- Keep parsed SVG caches reusable while updating internal references, accessibility ID lists, and root attribute overrides for each instance.
-
-### Added
-
-- Add `uniqueIds`, enabled by default, with an opt-out for SVGs that intentionally reference IDs outside their own instance.
-
 ## 0.3.0
 
 ### Added
 
-- Render inline SVGs in Solid with reactive props, loading and fallback content, and load/error callbacks.
+- Render SVGs in Solid with reactive props, loading and fallback content, and load/error callbacks.
 - Render sanitized SVGs on the server in Astro without client JavaScript, with a fallback slot and local SVG registration.
-- Render inline SVGs in Angular 20+ with a standalone component, signal inputs, loading and fallback templates, and load/error outputs.
+- Render SVGs in Angular 20+ with a standalone component, signal inputs, loading and fallback templates, and load/error outputs.
+- Discover local SVGs by name through `@mhaadi/svg/vite/plugin` and `@mhaadi/svg/astro/integration`, with configurable directories, nested names, symlink support, and development reloads.
+- Set both dimensions with `size`, with explicit `width` and `height` taking precedence.
+- Set accessible `title` and `desc` text without reloading the source. React Native maps these to its accessibility label and hint.
+- Control per-instance ID isolation with `uniqueIds`, enabled by default, with an opt-out for SVGs that intentionally reference external IDs.
 
 ### Changed
 
-- Make framework peers optional so installing the package does not require React for other adapters.
-- Include an XML parser for Astro server rendering.
-- Share one markup cache across all JavaScript adapters and limit it to 500 entries with least-recently-used eviction.
+- Make framework peers optional so other adapters can be installed without React.
+- Use `@xmldom/xmldom` for Astro and React Native parsing without a browser DOM. Browser adapters continue to use the browser parser.
+- Share a bounded markup cache across JavaScript adapters and reuse parsed trees without mutating them for instance IDs or labels.
+- Serialize transformed markup only when rendering needs it and reuse unchanged child markup when labels change.
+- Add website version history, framework-specific docs and search, wrapping example tabs, and debounced copy buttons. Remove Flutter from the documentation site.
 
 ### Fixed
 
-- Render inline and data-URL SVGs in React Native without requiring `fetch`.
-- Report React Native load errors when `DOMException` is unavailable.
-- Parse self-closing SVG roots and decode XML entities in text without a DOM parser.
-- Preserve authored root CSS in Vue and Svelte, including dashed property names, custom properties, and quoted values.
-- Convert camel-cased Vue style-object keys to valid CSS property names without changing custom-property casing.
-- Extract root class and style attributes regardless of casing so overrides merge correctly.
-- Abort pending Vue loads when the source is cleared so stale responses cannot replace the fallback.
-- Call Vue load and error callbacks once through their corresponding component events.
-- Honor `cache={false}` on every Svelte load and reuse cached markup across Svelte mounts.
-- Reparse changed markup for the same source instead of returning stale SVG content.
-- Share only responses explicitly marked public and bypass private, no-store, and no-cache responses so session content cannot cross adapters.
-- Prevent older concurrent responses from replacing newer cached markup.
-- Bypass shared markup caching when custom `fetchOptions` are provided so headers, credentials, and request methods take effect.
+- Isolate gradients, masks, clip paths, CSS selectors, fragment links, and accessibility references across repeated SVG instances. Keep references valid when callers override a root ID.
+- Preserve authored accessibility references when adding titles or descriptions and infer a viewBox from known intrinsic dimensions and absolute units when resizing artwork.
+- Render React Native inline and data-URL SVGs without fetching, preserve legacy xlink attributes, and handle malformed XML consistently.
+- Recognize SVG markup with XML declarations, comments, or DOCTYPE prefixes and honor caller cancellation in Astro.
+- Preserve authored root CSS in Vue and Svelte, including custom properties, dashed names, quoted values, and camel-cased Vue style-object keys. Keep Svelte's exported parsed style as a CSS string.
+- Abort stale Vue loads when the source is cleared, emit load/error callbacks once, and avoid refetching Svelte SVGs when callback identities change.
+- Honor `cache={false}`, reparse changed markup, keep parser caches isolated, and prevent older concurrent responses from replacing newer cached markup.
+- Keep the legacy Vite registration import during tree shaking and register raw SVG markup instead of asset URLs.
+- Preserve comments and empty HTML elements in trusted unsanitized SVGs and prevent local SVG discovery from following directory cycles.
+- Make the website marquee loop continuously and keep changelog navigation and keyboard focus working on desktop and mobile.
 
 ### Security
 
-- Reject unsafe URL schemes hidden by tabs, newlines, or leading control characters.
-- Remove event handlers regardless of attribute casing and restrict sanitized markup to static SVG elements. Stylesheets, animation elements, and embedded HTML require `sanitize={false}` for trusted input.
-- Escape parsed text before HTML insertion so XML CDATA cannot introduce executable markup.
+- Require explicit trusted `allowedOrigins` for cross-origin Astro fetches and reject HTTP redirects during server rendering.
+- Share only responses explicitly marked public. Bypass private, no-store, and no-cache responses and requests with custom `fetchOptions`.
+- Reject unsafe URL schemes hidden by control characters and remove event handlers regardless of attribute casing.
+- Restrict sanitized content to static SVG elements and escape parsed text before HTML insertion. Stylesheets, animation elements, and embedded HTML require `sanitize={false}` for trusted input.
 
 ## 0.2.3
 

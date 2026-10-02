@@ -144,7 +144,7 @@ import PmTabs from "../components/PmTabs.astro";
           <!-- Version badge -->
           <div class="mt-8 mx-3 rounded-none border border-coal-4 bg-coal-1 p-3">
             <p class="font-mono text-[10px] text-[#3a3a3a] mb-1">CURRENT VERSION</p>
-            <p class="font-mono text-sm text-acid">v{version}</p>
+            <a href={`/changelog#${version.replaceAll(".", "")}`} aria-label={`Release notes for version ${version}`} class="font-mono text-sm text-acid hover:text-[#e8e8e8] transition-colors">v{version}</a>
           </div>
         </div>
       </div>
